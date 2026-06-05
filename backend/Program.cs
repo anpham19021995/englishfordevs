@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddInMemoryCollection(LoadDotEnvConfiguration());
+builder.Configuration.AddInMemoryCollection(LoadMappedEnvironmentConfiguration());
 
 var isTesting = builder.Environment.IsEnvironment("Testing");
 var databaseConnection = isTesting
@@ -104,19 +105,7 @@ static Dictionary<string, string?> LoadDotEnvConfiguration()
         return [];
     }
 
-    var mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-    {
-        [EnvironmentVariableNames.AiProvider] = ConfigurationKeys.AiProvider,
-        [EnvironmentVariableNames.ConnectionStringsDefaultConnection] = ConfigurationKeys.DefaultConnectionPath,
-        [EnvironmentVariableNames.DatabaseConnectionString] = ConfigurationKeys.DefaultConnectionPath,
-        [EnvironmentVariableNames.OpenAiApiKey] = ConfigurationKeys.OpenAiApiKey,
-        [EnvironmentVariableNames.OpenAiModel] = ConfigurationKeys.OpenAiModel,
-        [EnvironmentVariableNames.OllamaApiKey] = ConfigurationKeys.OllamaApiKey,
-        [EnvironmentVariableNames.OllamaBaseUrl] = ConfigurationKeys.OllamaBaseUrl,
-        [EnvironmentVariableNames.OllamaModel] = ConfigurationKeys.OllamaModel,
-        [EnvironmentVariableNames.JwtSecret] = ConfigurationKeys.JwtSecret,
-        [EnvironmentVariableNames.CorsAllowedOrigins] = ConfigurationKeys.CorsAllowedOrigins
-    };
+    var mappings = GetConfigurationMappings();
     var values = new Dictionary<string, string?>();
 
     foreach (var line in File.ReadLines(path))
@@ -148,6 +137,40 @@ static Dictionary<string, string?> LoadDotEnvConfiguration()
     }
 
     return values;
+}
+
+static Dictionary<string, string?> LoadMappedEnvironmentConfiguration()
+{
+    var values = new Dictionary<string, string?>();
+
+    foreach (var (environmentKey, configurationKey) in GetConfigurationMappings())
+    {
+        var value = Environment.GetEnvironmentVariable(environmentKey);
+
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            values[configurationKey] = value;
+        }
+    }
+
+    return values;
+}
+
+static Dictionary<string, string> GetConfigurationMappings()
+{
+    return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        [EnvironmentVariableNames.AiProvider] = ConfigurationKeys.AiProvider,
+        [EnvironmentVariableNames.ConnectionStringsDefaultConnection] = ConfigurationKeys.DefaultConnectionPath,
+        [EnvironmentVariableNames.DatabaseConnectionString] = ConfigurationKeys.DefaultConnectionPath,
+        [EnvironmentVariableNames.OpenAiApiKey] = ConfigurationKeys.OpenAiApiKey,
+        [EnvironmentVariableNames.OpenAiModel] = ConfigurationKeys.OpenAiModel,
+        [EnvironmentVariableNames.OllamaApiKey] = ConfigurationKeys.OllamaApiKey,
+        [EnvironmentVariableNames.OllamaBaseUrl] = ConfigurationKeys.OllamaBaseUrl,
+        [EnvironmentVariableNames.OllamaModel] = ConfigurationKeys.OllamaModel,
+        [EnvironmentVariableNames.JwtSecret] = ConfigurationKeys.JwtSecret,
+        [EnvironmentVariableNames.CorsAllowedOrigins] = ConfigurationKeys.CorsAllowedOrigins
+    };
 }
 
 static string[] GetAllowedOrigins(IConfiguration configuration)
