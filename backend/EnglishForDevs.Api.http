@@ -1,0 +1,55 @@
+@EnglishForDevs.Api_HostAddress = http://localhost:5200
+
+GET {{EnglishForDevs.Api_HostAddress}}/api/health
+Accept: application/json
+
+###
+
+POST {{EnglishForDevs.Api_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "dev@example.com",
+  "password": "password123"
+}
+
+###
+
+POST {{EnglishForDevs.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "dev@example.com",
+  "password": "password123"
+}
+
+###
+
+POST {{EnglishForDevs.Api_HostAddress}}/api/practice
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "mode": "chat",
+  "message": "I fixed bug in API but explain not good."
+}
+
+###
+
+GET {{EnglishForDevs.Api_HostAddress}}/api/me
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###
+
+GET {{EnglishForDevs.Api_HostAddress}}/api/practice/history?take=10
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###
+
+GET {{EnglishForDevs.Api_HostAddress}}/api/me/progress
+Accept: application/json
+Authorization: Bearer {{token}}
+
+###

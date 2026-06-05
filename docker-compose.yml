@@ -1,0 +1,44 @@
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: english-for-devs-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=english_for_devs;Username=postgres;Password=postgres
+      AI__Provider: ${AI_PROVIDER:-openai}
+      OpenAI__ApiKey: ${OPENAI_API_KEY:-}
+      OpenAI__Model: ${OPENAI_MODEL:-gpt-4o-mini}
+      Ollama__ApiKey: ${OLLAMA_API_KEY:-}
+      Ollama__BaseUrl: ${OLLAMA_BASE_URL:-https://ollama.com/api}
+      Ollama__Model: ${OLLAMA_MODEL:-gpt-oss:20b}
+      Jwt__Issuer: EnglishForDevs
+      Jwt__Audience: EnglishForDevs
+      Jwt__Secret: ${JWT_SECRET:-development-only-secret-change-me-please-32-chars}
+    ports:
+      - "5200:8080"
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: english-for-devs-postgres
+    environment:
+      POSTGRES_DB: english_for_devs
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - english_for_devs_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d english_for_devs"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  english_for_devs_pgdata:

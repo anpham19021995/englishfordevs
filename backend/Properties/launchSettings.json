@@ -1,0 +1,33 @@
+﻿{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development",
+        "AI__Provider": "ollama",
+        "Ollama__BaseUrl": "https://ollama.com/api",
+        "Ollama__Model": "gpt-oss:20b",
+        "Jwt__Secret": "development-only-secret-change-me-please-32-chars"
+      }
+    },
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "https://localhost:7228;http://localhost:5200",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development",
+        "AI__Provider": "ollama",
+        "Ollama__BaseUrl": "https://ollama.com/api",
+        "Ollama__Model": "gpt-oss:20b",
+        "Jwt__Secret": "development-only-secret-change-me-please-32-chars"
+      }
+    }
+  }
+}

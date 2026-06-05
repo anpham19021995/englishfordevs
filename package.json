@@ -1,0 +1,23 @@
+{
+  "name": "english-for-devs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev:frontend",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "dotnet run --project backend/EnglishForDevs.Api.csproj",
+    "dev:postgres": "docker compose up postgres",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:backend": "dotnet build backend/EnglishForDevs.Api.csproj",
+    "test": "npm run test:backend",
+    "test:backend": "dotnet test backend.tests/EnglishForDevs.Api.Tests.csproj",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "docker:down:volumes": "docker compose down -v",
+    "docker:logs": "docker compose logs -f api",
+    "start": "npm --prefix frontend run start",
+    "lint": "npm --prefix frontend run lint",
+    "install:frontend": "npm --prefix frontend install"
+  }
+}
