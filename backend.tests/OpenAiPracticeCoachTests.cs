@@ -130,6 +130,33 @@ public sealed class OpenAiPracticeCoachTests
         Assert.All(response.Feedback.Vocabulary, item => Assert.Contains(" - ", item));
     }
 
+    [Fact]
+    public async Task GenerateFeedbackAsync_MarksFallbackWhenOllamaPayloadIsInvalid()
+    {
+        using var handler = new CapturingHandler("not valid json");
+        using var httpClient = new HttpClient(handler);
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [ConfigurationKeys.AiProvider] = AiProviders.Ollama,
+                [ConfigurationKeys.OllamaApiKey] = "test-ollama-key",
+                [ConfigurationKeys.OllamaBaseUrl] = "https://ollama.com/api",
+                [ConfigurationKeys.OllamaModel] = "gpt-oss:20b"
+            })
+            .Build();
+        var coach = new OpenAiPracticeCoach(
+            httpClient,
+            configuration,
+            NullLogger<OpenAiPracticeCoach>.Instance);
+
+        var response = await coach.GenerateFeedbackAsync(
+            new PracticeRequest(PracticeModes.Chat, "I fixed bug in API."),
+            CancellationToken.None);
+
+        Assert.Equal(PracticeSources.LocalFallback, response.Source);
+        Assert.False(string.IsNullOrWhiteSpace(response.Feedback.DirectReply));
+    }
+
     private sealed class CapturingHandler(string? responseContent = null) : HttpMessageHandler, IDisposable
     {
         public HttpRequestMessage? Request { get; private set; }

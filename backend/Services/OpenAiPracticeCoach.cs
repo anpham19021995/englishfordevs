@@ -160,10 +160,14 @@ public sealed class OpenAiPracticeCoach(
             var completion = await response.Content.ReadFromJsonAsync<OpenAiChatCompletion>(
                 JsonOptions,
                 cancellationToken);
-            var content = completion?.Choices.FirstOrDefault()?.Message.Content;
-            var feedback = NormalizeFeedback(content, request.Mode);
+            var feedback = NormalizeFeedback(
+                completion?.Choices.FirstOrDefault()?.Message.Content,
+                request.Mode,
+                out var usedFallback);
 
-            return new PracticeResponse(feedback, PracticeSources.OpenAi);
+            return new PracticeResponse(
+                feedback,
+                usedFallback ? PracticeSources.LocalFallback : PracticeSources.OpenAi);
         }
         catch (Exception exception) when (exception is HttpRequestException or JsonException)
         {
@@ -203,41 +207,113 @@ public sealed class OpenAiPracticeCoach(
             }
         };
 
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/chat");
-
-        if (!string.IsNullOrWhiteSpace(apiKey))
-        {
-            httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-        }
-
-        httpRequest.Content = new StringContent(
-            JsonSerializer.Serialize(payload, JsonOptions),
-            Encoding.UTF8,
-            "application/json");
+        var payloadJson = JsonSerializer.Serialize(payload, JsonOptions);
 
         try
         {
-            using var response = await httpClient.SendAsync(httpRequest, cancellationToken);
+            using var response = await SendOllamaAsync(
+                baseUrl,
+                apiKey,
+                payloadJson,
+                cancellationToken);
             response.EnsureSuccessStatusCode();
 
             var completion = await response.Content.ReadFromJsonAsync<OllamaChatCompletion>(
                 JsonOptions,
                 cancellationToken);
-            var feedback = NormalizeFeedback(completion?.Message.Content, request.Mode);
+            var feedback = NormalizeFeedback(
+                completion?.Message.Content,
+                request.Mode,
+                out var usedFallback);
 
-            return new PracticeResponse(feedback, PracticeSources.Ollama);
+            if (usedFallback)
+            {
+                logger.LogWarning(
+                    "Ollama returned an empty or invalid feedback payload. Returning local fallback.");
+            }
+
+            return new PracticeResponse(
+                feedback,
+                usedFallback ? PracticeSources.LocalFallback : PracticeSources.Ollama);
         }
-        catch (Exception exception) when (exception is HttpRequestException or JsonException)
+        catch (Exception exception) when (exception is HttpRequestException or JsonException or TaskCanceledException)
         {
             logger.LogWarning(exception, "Ollama feedback generation failed. Returning local fallback.");
             return new PracticeResponse(FallbackFeedback.ForMode(request.Mode), PracticeSources.LocalFallback);
         }
     }
 
-    private static PracticeFeedback NormalizeFeedback(string? content, string mode)
+    private async Task<HttpResponseMessage> SendOllamaAsync(
+        string baseUrl,
+        string? apiKey,
+        string payloadJson,
+        CancellationToken cancellationToken)
+    {
+        const int maxAttempts = 2;
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            using var request = CreateOllamaRequest(baseUrl, apiKey, payloadJson);
+            var response = await httpClient.SendAsync(request, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return response;
+            }
+
+            var statusCode = response.StatusCode;
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            response.Dispose();
+
+            logger.LogWarning(
+                "Ollama returned HTTP {StatusCode} on attempt {Attempt}. Body: {ResponseBody}",
+                (int)statusCode,
+                attempt,
+                CleanText(responseBody, 240));
+
+            if (attempt < maxAttempts && (int)statusCode >= 500)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(350), cancellationToken);
+                continue;
+            }
+
+            throw new HttpRequestException(
+                $"Ollama returned HTTP {(int)statusCode}.",
+                null,
+                statusCode);
+        }
+
+        throw new HttpRequestException("Ollama request failed after retry.");
+    }
+
+    private static HttpRequestMessage CreateOllamaRequest(
+        string baseUrl,
+        string? apiKey,
+        string payloadJson)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/chat");
+
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        }
+
+        request.Content = new StringContent(
+            payloadJson,
+            Encoding.UTF8,
+            "application/json");
+
+        return request;
+    }
+
+    private static PracticeFeedback NormalizeFeedback(
+        string? content,
+        string mode,
+        out bool usedFallback)
     {
         if (string.IsNullOrWhiteSpace(content))
         {
+            usedFallback = true;
             return FallbackFeedback.ForMode(mode);
         }
 
@@ -246,14 +322,14 @@ public sealed class OpenAiPracticeCoach(
         try
         {
             var feedback = ParseFeedback(content);
-            return string.IsNullOrWhiteSpace(feedback.DirectReply)
-                ? FallbackFeedback.ForMode(mode)
-                : feedback;
+            usedFallback = string.IsNullOrWhiteSpace(feedback.DirectReply);
+
+            return usedFallback ? FallbackFeedback.ForMode(mode) : feedback;
         }
         catch (JsonException)
         {
-            var fallback = FallbackFeedback.ForMode(mode);
-            return fallback with { DirectReply = content };
+            usedFallback = true;
+            return FallbackFeedback.ForMode(mode);
         }
     }
 
