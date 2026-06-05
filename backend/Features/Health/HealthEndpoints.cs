@@ -1,3 +1,5 @@
+using EnglishForDevs.Api.Shared;
+
 namespace EnglishForDevs.Api.Features.Health;
 
 public static class HealthEndpoints
@@ -7,7 +9,7 @@ public static class HealthEndpoints
         endpoints.MapGet("/api/health", () => Results.Ok(new
         {
             status = "ok",
-            app = "EnglishForDevs.Api",
+            app = ApplicationConstants.ApiName,
             timestamp = DateTimeOffset.UtcNow
         }))
         .WithName("HealthCheck");
@@ -18,17 +20,17 @@ public static class HealthEndpoints
             {
                 environment = environment.EnvironmentName,
                 historyStorage = string.IsNullOrWhiteSpace(
-                    configuration.GetConnectionString("DefaultConnection"))
-                    ? "in-memory"
-                    : "postgres",
+                    configuration.GetConnectionString(ConfigurationKeys.DefaultConnectionName))
+                    ? HistoryStorageTypes.InMemory
+                    : HistoryStorageTypes.Postgres,
                 databaseConfigured = !string.IsNullOrWhiteSpace(
-                    configuration.GetConnectionString("DefaultConnection")),
-                jwtSecretConfigured = !string.IsNullOrWhiteSpace(configuration["Jwt:Secret"]),
-                provider = configuration["AI:Provider"] ?? "",
-                openAiApiKeyConfigured = !string.IsNullOrWhiteSpace(configuration["OpenAI:ApiKey"]),
-                ollamaApiKeyConfigured = !string.IsNullOrWhiteSpace(configuration["Ollama:ApiKey"]),
-                ollamaBaseUrl = configuration["Ollama:BaseUrl"] ?? "",
-                ollamaModel = configuration["Ollama:Model"] ?? ""
+                    configuration.GetConnectionString(ConfigurationKeys.DefaultConnectionName)),
+                jwtSecretConfigured = !string.IsNullOrWhiteSpace(configuration[ConfigurationKeys.JwtSecret]),
+                provider = configuration[ConfigurationKeys.AiProvider] ?? "",
+                openAiApiKeyConfigured = !string.IsNullOrWhiteSpace(configuration[ConfigurationKeys.OpenAiApiKey]),
+                ollamaApiKeyConfigured = !string.IsNullOrWhiteSpace(configuration[ConfigurationKeys.OllamaApiKey]),
+                ollamaBaseUrl = configuration[ConfigurationKeys.OllamaBaseUrl] ?? "",
+                ollamaModel = configuration[ConfigurationKeys.OllamaModel] ?? ""
             }))
         .WithName("AiConfigHealthCheck");
 

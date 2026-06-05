@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using EnglishForDevs.Api.Services;
+using EnglishForDevs.Api.Shared;
 
 namespace EnglishForDevs.Api.Tests;
 
@@ -27,7 +29,7 @@ public sealed class ApiFlowTests(ApiTestFactory factory) : IClassFixture<ApiTest
     {
         var practice = await client.PostAsJsonAsync("/api/practice", new
         {
-            mode = "chat",
+            mode = PracticeModes.Chat,
             message = "I fixed bug in API."
         });
         var history = await client.GetAsync("/api/practice/history");
@@ -36,6 +38,69 @@ public sealed class ApiFlowTests(ApiTestFactory factory) : IClassFixture<ApiTest
         Assert.Equal(HttpStatusCode.Unauthorized, practice.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, history.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, progress.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("not-an-email", "password123", "A valid email is required.")]
+    [InlineData("dev@example.com", "short", "Password must be at least 8 characters.")]
+    public async Task Register_Rejects_Invalid_Input(
+        string email,
+        string password,
+        string expectedError)
+    {
+        var response = await client.PostAsJsonAsync("/api/auth/register", new
+        {
+            email,
+            password
+        });
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(expectedError, error?.Error);
+    }
+
+    [Theory]
+    [InlineData(PracticeModes.Chat, "", "Message is required.")]
+    [InlineData(PracticeModes.Chat, "ok", "Message must be at least 3 characters.")]
+    [InlineData("unknown", "I fixed a bug.", "Unsupported mode. Supported modes are: chat, interview, converter.")]
+    public async Task Practice_Rejects_Invalid_Input(
+        string mode,
+        string message,
+        string expectedError)
+    {
+        var auth = await RegisterAsync(UniqueEmail());
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", auth.Token);
+
+        var response = await client.PostAsJsonAsync("/api/practice", new
+        {
+            mode,
+            message
+        });
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(expectedError, error?.Error);
+    }
+
+    [Fact]
+    public async Task Practice_Rejects_Too_Long_Message()
+    {
+        var auth = await RegisterAsync(UniqueEmail());
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", auth.Token);
+
+        var response = await client.PostAsJsonAsync("/api/practice", new
+        {
+            mode = PracticeModes.Chat,
+            message = new string('a', ValidationLimits.PracticeMessageMaxLength + 1)
+        });
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(
+            $"Message must be {ValidationLimits.PracticeMessageMaxLength} characters or fewer.",
+            error?.Error);
     }
 
     [Fact]
@@ -47,7 +112,7 @@ public sealed class ApiFlowTests(ApiTestFactory factory) : IClassFixture<ApiTest
 
         var response = await client.PostAsJsonAsync("/api/practice", new
         {
-            mode = "interview",
+            mode = PracticeModes.Interview,
             message = "I design API with cache and database index."
         });
         var practice = await response.Content.ReadFromJsonAsync<PracticeResponse>();
@@ -70,7 +135,7 @@ public sealed class ApiFlowTests(ApiTestFactory factory) : IClassFixture<ApiTest
 
         await client.PostAsJsonAsync("/api/practice", new
         {
-            mode = "converter",
+            mode = PracticeModes.Converter,
             message = "Service nay xu ly bat dong bo."
         });
         var progress = await client.GetFromJsonAsync<UserProgressResponse>(
@@ -97,12 +162,12 @@ public sealed class ApiFlowTests(ApiTestFactory factory) : IClassFixture<ApiTest
 
         await firstUserClient.PostAsJsonAsync("/api/practice", new
         {
-            mode = "chat",
+            mode = PracticeModes.Chat,
             message = "I fixed the endpoint issue."
         });
         await secondUserClient.PostAsJsonAsync("/api/practice", new
         {
-            mode = "chat",
+            mode = PracticeModes.Chat,
             message = "I updated the deployment script."
         });
 

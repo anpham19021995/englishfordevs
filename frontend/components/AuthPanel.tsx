@@ -1,4 +1,5 @@
 import type { AuthResponse } from "@/lib/api";
+import { validationLimits } from "@/lib/constants";
 import { LogOut } from "lucide-react";
 import type { FormEvent } from "react";
 
@@ -69,6 +70,7 @@ export function AuthPanel({
         autoComplete="email"
         type="email"
         value={email}
+        maxLength={validationLimits.emailMaxLength}
         placeholder="you@example.com"
         onChange={(event) => onEmailChange(event.target.value)}
       />
@@ -77,6 +79,7 @@ export function AuthPanel({
         autoComplete={authMode === "login" ? "current-password" : "new-password"}
         type="password"
         value={password}
+        maxLength={validationLimits.passwordMaxLength}
         placeholder="Password"
         onChange={(event) => onPasswordChange(event.target.value)}
       />
@@ -84,7 +87,11 @@ export function AuthPanel({
       <button
         className="primary-button full-width"
         type="submit"
-        disabled={isLoading || !email.trim() || password.length < 8}
+        disabled={
+          isLoading ||
+          !email.trim() ||
+          password.length < validationLimits.passwordMinLength
+        }
       >
         {isLoading ? "Working" : authMode === "login" ? "Login" : "Create account"}
       </button>

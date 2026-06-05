@@ -32,6 +32,7 @@
 - Frontend system status panel for backend URL, AI provider, environment, and history storage.
 - Local dev consistency check for backend URL, PostgreSQL, and AI provider configuration.
 - Clear warning when local fallback feedback is shown because the AI provider is unavailable.
+- Hardened backend validation for auth and practice requests.
 
 ## Retention
 

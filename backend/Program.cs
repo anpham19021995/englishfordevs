@@ -6,6 +6,7 @@ using EnglishForDevs.Api.Features.Health;
 using EnglishForDevs.Api.Features.Me;
 using EnglishForDevs.Api.Features.Practice;
 using EnglishForDevs.Api.Services;
+using EnglishForDevs.Api.Shared;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,7 @@ builder.Configuration.AddInMemoryCollection(LoadDotEnvConfiguration());
 var isTesting = builder.Environment.IsEnvironment("Testing");
 var databaseConnection = isTesting
     ? ""
-    : builder.Configuration.GetConnectionString("DefaultConnection");
+    : builder.Configuration.GetConnectionString(ConfigurationKeys.DefaultConnectionName);
 var jwtSecret = AuthService.GetJwtSecret(
     builder.Configuration,
     builder.Environment.IsDevelopment() || isTesting);
@@ -32,15 +33,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "EnglishForDevs",
-            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "EnglishForDevs",
+            ValidIssuer = builder.Configuration[ConfigurationKeys.JwtIssuer] ?? ApplicationConstants.Name,
+            ValidAudience = builder.Configuration[ConfigurationKeys.JwtAudience] ?? ApplicationConstants.Name,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
         };
     });
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("Frontend", policy =>
+    options.AddPolicy(ApplicationConstants.FrontendCorsPolicy, policy =>
     {
         policy
             .WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
@@ -83,7 +84,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-app.UseCors("Frontend");
+app.UseCors(ApplicationConstants.FrontendCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -105,15 +106,15 @@ static Dictionary<string, string?> LoadDotEnvConfiguration()
 
     var mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
-        ["AI_PROVIDER"] = "AI:Provider",
-        ["CONNECTIONSTRINGS__DEFAULTCONNECTION"] = "ConnectionStrings:DefaultConnection",
-        ["DATABASE_CONNECTION_STRING"] = "ConnectionStrings:DefaultConnection",
-        ["OPENAI_API_KEY"] = "OpenAI:ApiKey",
-        ["OPENAI_MODEL"] = "OpenAI:Model",
-        ["OLLAMA_API_KEY"] = "Ollama:ApiKey",
-        ["OLLAMA_BASE_URL"] = "Ollama:BaseUrl",
-        ["OLLAMA_MODEL"] = "Ollama:Model",
-        ["JWT_SECRET"] = "Jwt:Secret"
+        [EnvironmentVariableNames.AiProvider] = ConfigurationKeys.AiProvider,
+        [EnvironmentVariableNames.ConnectionStringsDefaultConnection] = ConfigurationKeys.DefaultConnectionPath,
+        [EnvironmentVariableNames.DatabaseConnectionString] = ConfigurationKeys.DefaultConnectionPath,
+        [EnvironmentVariableNames.OpenAiApiKey] = ConfigurationKeys.OpenAiApiKey,
+        [EnvironmentVariableNames.OpenAiModel] = ConfigurationKeys.OpenAiModel,
+        [EnvironmentVariableNames.OllamaApiKey] = ConfigurationKeys.OllamaApiKey,
+        [EnvironmentVariableNames.OllamaBaseUrl] = ConfigurationKeys.OllamaBaseUrl,
+        [EnvironmentVariableNames.OllamaModel] = ConfigurationKeys.OllamaModel,
+        [EnvironmentVariableNames.JwtSecret] = ConfigurationKeys.JwtSecret
     };
     var values = new Dictionary<string, string?>();
 

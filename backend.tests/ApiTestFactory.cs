@@ -1,3 +1,4 @@
+using EnglishForDevs.Api.Shared;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -13,12 +14,12 @@ public sealed class ApiTestFactory : WebApplicationFactory<Program>
         {
             configuration.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "",
-                ["Jwt:Secret"] = "development-only-secret-change-me-please-32-chars",
-                ["Jwt:Issuer"] = "EnglishForDevs",
-                ["Jwt:Audience"] = "EnglishForDevs",
-                ["OpenAI:ApiKey"] = "",
-                ["OpenAI:Model"] = "gpt-4o-mini"
+                [ConfigurationKeys.DefaultConnectionPath] = "",
+                [ConfigurationKeys.JwtSecret] = ApplicationConstants.DevelopmentJwtSecret,
+                [ConfigurationKeys.JwtIssuer] = ApplicationConstants.Name,
+                [ConfigurationKeys.JwtAudience] = ApplicationConstants.Name,
+                [ConfigurationKeys.OpenAiApiKey] = "",
+                [ConfigurationKeys.OpenAiModel] = "gpt-4o-mini"
             });
         });
     }

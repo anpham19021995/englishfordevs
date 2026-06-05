@@ -1,6 +1,7 @@
 "use client";
 
 import type { HistoryItem } from "@/lib/api";
+import { practiceSources } from "@/lib/constants";
 import type { PracticeModeOption } from "@/lib/practiceModes";
 import { History, RotateCw, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -16,7 +17,7 @@ type HistoryListProps = {
   onClear: () => void;
 };
 
-type SourceFilter = "all" | "openai" | "ollama" | "local-fallback";
+type SourceFilter = "all" | (typeof practiceSources)[keyof typeof practiceSources];
 type ModeFilter = "all" | HistoryItem["mode"];
 
 export function HistoryList({
@@ -117,9 +118,9 @@ export function HistoryList({
                 }
               >
                 <option value="all">All sources</option>
-                <option value="ollama">Ollama</option>
-                <option value="openai">OpenAI</option>
-                <option value="local-fallback">Local fallback</option>
+                <option value={practiceSources.ollama}>Ollama</option>
+                <option value={practiceSources.openAi}>OpenAI</option>
+                <option value={practiceSources.localFallback}>Local fallback</option>
               </select>
             </label>
           </div>
@@ -203,11 +204,11 @@ export function HistoryList({
 }
 
 function formatSource(source: string) {
-  if (source === "openai") {
+  if (source === practiceSources.openAi) {
     return "OpenAI";
   }
 
-  if (source === "ollama") {
+  if (source === practiceSources.ollama) {
     return "Ollama";
   }
 

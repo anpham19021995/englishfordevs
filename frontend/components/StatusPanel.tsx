@@ -1,4 +1,5 @@
 import type { BackendStatus } from "@/lib/api";
+import { aiProviders, historyStorageTypes } from "@/lib/constants";
 import { AlertTriangle, CheckCircle2, Server, WifiOff } from "lucide-react";
 
 type StatusPanelProps = {
@@ -16,10 +17,10 @@ export function StatusPanel({
   isLoading,
   onRefresh,
 }: StatusPanelProps) {
-  const historyIsPersistent = status?.historyStorage === "postgres";
+  const historyIsPersistent = status?.historyStorage === historyStorageTypes.postgres;
   const provider = status?.provider || "unknown";
   const providerKeyConfigured =
-    provider === "ollama"
+    provider === aiProviders.ollama
       ? status?.ollamaApiKeyConfigured
       : status?.openAiApiKeyConfigured;
 
@@ -113,11 +114,11 @@ function StatusRow({
 }
 
 function formatProvider(provider: string) {
-  if (provider === "ollama") {
+  if (provider === aiProviders.ollama) {
     return "Ollama";
   }
 
-  if (provider === "openai") {
+  if (provider === aiProviders.openAi) {
     return "OpenAI";
   }
 

@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using EnglishForDevs.Api.Services;
+using EnglishForDevs.Api.Shared;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -18,8 +19,8 @@ public sealed class OpenAiPracticeCoachTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["OpenAI:ApiKey"] = "test-api-key",
-                ["OpenAI:Model"] = "gpt-4o-mini"
+                [ConfigurationKeys.OpenAiApiKey] = "test-api-key",
+                [ConfigurationKeys.OpenAiModel] = "gpt-4o-mini"
             })
             .Build();
         var coach = new OpenAiPracticeCoach(
@@ -31,7 +32,7 @@ public sealed class OpenAiPracticeCoachTests
             new PracticeRequest(PracticeModes.Chat, "I fixed bug in API."),
             CancellationToken.None);
 
-        Assert.Equal("openai", response.Source);
+        Assert.Equal(PracticeSources.OpenAi, response.Source);
         Assert.Equal("Nice work. Tell me what changed.", response.Feedback.DirectReply);
         Assert.Equal("Bearer", handler.Request?.Headers.Authorization?.Scheme);
         Assert.Equal("test-api-key", handler.Request?.Headers.Authorization?.Parameter);
@@ -60,10 +61,10 @@ public sealed class OpenAiPracticeCoachTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["AI:Provider"] = "ollama",
-                ["Ollama:ApiKey"] = "test-ollama-key",
-                ["Ollama:BaseUrl"] = "https://ollama.com/api",
-                ["Ollama:Model"] = "gpt-oss:20b"
+                [ConfigurationKeys.AiProvider] = AiProviders.Ollama,
+                [ConfigurationKeys.OllamaApiKey] = "test-ollama-key",
+                [ConfigurationKeys.OllamaBaseUrl] = "https://ollama.com/api",
+                [ConfigurationKeys.OllamaModel] = "gpt-oss:20b"
             })
             .Build();
         var coach = new OpenAiPracticeCoach(
@@ -75,7 +76,7 @@ public sealed class OpenAiPracticeCoachTests
             new PracticeRequest(PracticeModes.Chat, "I fixed bug in API."),
             CancellationToken.None);
 
-        Assert.Equal("ollama", response.Source);
+        Assert.Equal(PracticeSources.Ollama, response.Source);
         Assert.Equal("Nice work. Tell me what changed.", response.Feedback.DirectReply);
         Assert.Equal("https://ollama.com/api/chat", handler.Request?.RequestUri?.ToString());
         Assert.Equal("Bearer", handler.Request?.Headers.Authorization?.Scheme);
@@ -107,10 +108,10 @@ public sealed class OpenAiPracticeCoachTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["AI:Provider"] = "ollama",
-                ["Ollama:ApiKey"] = "test-ollama-key",
-                ["Ollama:BaseUrl"] = "https://ollama.com/api",
-                ["Ollama:Model"] = "gpt-oss:20b"
+                [ConfigurationKeys.AiProvider] = AiProviders.Ollama,
+                [ConfigurationKeys.OllamaApiKey] = "test-ollama-key",
+                [ConfigurationKeys.OllamaBaseUrl] = "https://ollama.com/api",
+                [ConfigurationKeys.OllamaModel] = "gpt-oss:20b"
             })
             .Build();
         var coach = new OpenAiPracticeCoach(
@@ -122,7 +123,7 @@ public sealed class OpenAiPracticeCoachTests
             new PracticeRequest(PracticeModes.Chat, "I fixed bug in API."),
             CancellationToken.None);
 
-        Assert.Equal("ollama", response.Source);
+        Assert.Equal(PracticeSources.Ollama, response.Source);
         Assert.Equal("Great work.", response.Feedback.DirectReply);
         Assert.Equal("0.85", response.Feedback.ConfidenceFeedback);
         Assert.Equal(5, response.Feedback.Vocabulary.Length);

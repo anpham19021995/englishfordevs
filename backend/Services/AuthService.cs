@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using EnglishForDevs.Api.Data;
 using EnglishForDevs.Api.Data.Entities;
+using EnglishForDevs.Api.Shared;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -64,8 +65,8 @@ public sealed class AuthService(
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var expiresAt = DateTimeOffset.UtcNow.AddHours(12);
         var token = new JwtSecurityToken(
-            issuer: configuration["Jwt:Issuer"] ?? "EnglishForDevs",
-            audience: configuration["Jwt:Audience"] ?? "EnglishForDevs",
+            issuer: configuration[ConfigurationKeys.JwtIssuer] ?? ApplicationConstants.Name,
+            audience: configuration[ConfigurationKeys.JwtAudience] ?? ApplicationConstants.Name,
             claims:
             [
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -92,13 +93,13 @@ public sealed class AuthService(
         IConfiguration configuration,
         bool allowDevelopmentFallback = false)
     {
-        var secret = configuration["Jwt:Secret"];
+        var secret = configuration[ConfigurationKeys.JwtSecret];
 
         if (!string.IsNullOrWhiteSpace(secret))
         {
             return secret;
         }
 
-        return "development-only-secret-change-me-please-32-chars";
+        return ApplicationConstants.DevelopmentJwtSecret;
     }
 }

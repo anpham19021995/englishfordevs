@@ -1,3 +1,4 @@
+import { validationLimits } from "@/lib/constants";
 import type { PracticeModeOption } from "@/lib/practiceModes";
 import { Send, Sparkles } from "lucide-react";
 import type { FormEvent } from "react";
@@ -34,11 +35,13 @@ export function PracticeComposer({
           aria-label="Practice message"
           value={message}
           placeholder={activeMode.placeholder}
+          maxLength={validationLimits.practiceMessageMaxLength}
           onChange={(event) => onMessageChange(event.target.value)}
         />
         <div className="actions">
           <p className="hint">
-            Write naturally. The coach will improve clarity, tone, and grammar.
+            Write naturally. {message.length}/
+            {validationLimits.practiceMessageMaxLength}
           </p>
           <button
             className="primary-button"

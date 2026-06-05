@@ -13,15 +13,14 @@ public static class GeneratePracticeFeedback
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.Message))
+        var validationError = PracticeValidation.Validate(request);
+
+        if (validationError is not null)
         {
-            return Results.BadRequest(new { error = "Message is required." });
+            return Results.BadRequest(new { error = validationError });
         }
 
-        if (!PracticeModes.All.Contains(request.Mode))
-        {
-            return Results.BadRequest(new { error = "Unsupported mode." });
-        }
+        request = PracticeValidation.Normalize(request);
 
         var response = await coach.GenerateFeedbackAsync(request, cancellationToken);
         var attempt = await historyStore.SaveAsync(

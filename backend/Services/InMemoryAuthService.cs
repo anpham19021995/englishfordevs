@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using EnglishForDevs.Api.Data.Entities;
+using EnglishForDevs.Api.Shared;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
@@ -58,8 +59,8 @@ public sealed class InMemoryAuthService(
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var expiresAt = DateTimeOffset.UtcNow.AddHours(12);
         var token = new JwtSecurityToken(
-            issuer: configuration["Jwt:Issuer"] ?? "EnglishForDevs",
-            audience: configuration["Jwt:Audience"] ?? "EnglishForDevs",
+            issuer: configuration[ConfigurationKeys.JwtIssuer] ?? ApplicationConstants.Name,
+            audience: configuration[ConfigurationKeys.JwtAudience] ?? ApplicationConstants.Name,
             claims:
             [
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),

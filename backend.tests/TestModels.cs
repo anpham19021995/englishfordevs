@@ -37,3 +37,6 @@ public sealed record UserProgressResponse(
     [property: JsonPropertyName("converterPractices")] int ConverterPractices,
     [property: JsonPropertyName("currentStreakDays")] int CurrentStreakDays,
     [property: JsonPropertyName("lastPracticeAt")] DateTimeOffset? LastPracticeAt);
+
+public sealed record ErrorResponse(
+    [property: JsonPropertyName("error")] string Error);

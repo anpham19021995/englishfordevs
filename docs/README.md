@@ -221,6 +221,13 @@ For local Ollama, use `OLLAMA_BASE_URL=http://host.docker.internal:11434/api` in
 
 Profile, practice, history, and progress endpoints require a JWT from `/api/auth/login` or `/api/auth/register`.
 
+## Validation Rules
+
+- Email must be valid and 256 characters or fewer.
+- Password must be 8 to 128 characters.
+- Practice message must be 3 to 4000 characters.
+- Practice mode must be `chat`, `interview`, or `converter`.
+
 ## Session and History Retention
 
 - Login JWTs expire after 12 hours.

@@ -1,4 +1,5 @@
 using EnglishForDevs.Api.Data.Entities;
+using EnglishForDevs.Api.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishForDevs.Api.Data;
@@ -13,7 +14,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         modelBuilder.Entity<AppUser>(entity =>
         {
             entity.HasKey(user => user.Id);
-            entity.Property(user => user.Email).HasMaxLength(256).IsRequired();
+            entity.Property(user => user.Email).HasMaxLength(ValidationLimits.EmailMaxLength).IsRequired();
             entity.Property(user => user.PasswordHash).HasMaxLength(512).IsRequired();
             entity.HasIndex(user => user.Email).IsUnique();
         });
@@ -22,13 +23,13 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         {
             entity.HasKey(attempt => attempt.Id);
             entity.Property(attempt => attempt.Mode).HasMaxLength(32).IsRequired();
-            entity.Property(attempt => attempt.Message).HasMaxLength(4000).IsRequired();
+            entity.Property(attempt => attempt.Message).HasMaxLength(ValidationLimits.PracticeMessageMaxLength).IsRequired();
             entity.Property(attempt => attempt.Source).HasMaxLength(64).IsRequired();
-            entity.Property(attempt => attempt.DirectReply).HasMaxLength(4000).IsRequired();
-            entity.Property(attempt => attempt.CorrectedVersion).HasMaxLength(4000).IsRequired();
-            entity.Property(attempt => attempt.NaturalVersion).HasMaxLength(4000).IsRequired();
-            entity.Property(attempt => attempt.ConfidenceFeedback).HasMaxLength(4000).IsRequired();
-            entity.Property(attempt => attempt.FollowUpQuestion).HasMaxLength(1000).IsRequired();
+            entity.Property(attempt => attempt.DirectReply).HasMaxLength(ValidationLimits.PracticeFeedbackMaxLength).IsRequired();
+            entity.Property(attempt => attempt.CorrectedVersion).HasMaxLength(ValidationLimits.PracticeFeedbackMaxLength).IsRequired();
+            entity.Property(attempt => attempt.NaturalVersion).HasMaxLength(ValidationLimits.PracticeFeedbackMaxLength).IsRequired();
+            entity.Property(attempt => attempt.ConfidenceFeedback).HasMaxLength(ValidationLimits.PracticeFeedbackMaxLength).IsRequired();
+            entity.Property(attempt => attempt.FollowUpQuestion).HasMaxLength(ValidationLimits.PracticeFollowUpQuestionMaxLength).IsRequired();
             entity.HasOne(attempt => attempt.User)
                 .WithMany()
                 .HasForeignKey(attempt => attempt.UserId)

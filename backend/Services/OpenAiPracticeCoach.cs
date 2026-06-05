@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using EnglishForDevs.Api.Shared;
 
 namespace EnglishForDevs.Api.Services;
 
@@ -109,21 +110,21 @@ public sealed class OpenAiPracticeCoach(
         PracticeRequest request,
         CancellationToken cancellationToken)
     {
-        var provider = configuration["AI:Provider"];
+        var provider = configuration[ConfigurationKeys.AiProvider];
 
-        if (string.Equals(provider, "ollama", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(provider, AiProviders.Ollama, StringComparison.OrdinalIgnoreCase))
         {
             return await GenerateOllamaFeedbackAsync(request, cancellationToken);
         }
 
-        var apiKey = configuration["OpenAI:ApiKey"];
+        var apiKey = configuration[ConfigurationKeys.OpenAiApiKey];
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
-            return new PracticeResponse(FallbackFeedback.ForMode(request.Mode), "local-fallback");
+            return new PracticeResponse(FallbackFeedback.ForMode(request.Mode), PracticeSources.LocalFallback);
         }
 
-        var model = configuration["OpenAI:Model"] ?? "gpt-4o-mini";
+        var model = configuration[ConfigurationKeys.OpenAiModel] ?? "gpt-4o-mini";
         var payload = new
         {
             model,
@@ -162,12 +163,12 @@ public sealed class OpenAiPracticeCoach(
             var content = completion?.Choices.FirstOrDefault()?.Message.Content;
             var feedback = NormalizeFeedback(content, request.Mode);
 
-            return new PracticeResponse(feedback, "openai");
+            return new PracticeResponse(feedback, PracticeSources.OpenAi);
         }
         catch (Exception exception) when (exception is HttpRequestException or JsonException)
         {
             logger.LogWarning(exception, "OpenAI feedback generation failed. Returning local fallback.");
-            return new PracticeResponse(FallbackFeedback.ForMode(request.Mode), "local-fallback");
+            return new PracticeResponse(FallbackFeedback.ForMode(request.Mode), PracticeSources.LocalFallback);
         }
     }
 
@@ -175,9 +176,9 @@ public sealed class OpenAiPracticeCoach(
         PracticeRequest request,
         CancellationToken cancellationToken)
     {
-        var apiKey = configuration["Ollama:ApiKey"];
-        var baseUrl = (configuration["Ollama:BaseUrl"] ?? "http://localhost:11434/api").TrimEnd('/');
-        var model = configuration["Ollama:Model"] ?? "gpt-oss:20b";
+        var apiKey = configuration[ConfigurationKeys.OllamaApiKey];
+        var baseUrl = (configuration[ConfigurationKeys.OllamaBaseUrl] ?? "http://localhost:11434/api").TrimEnd('/');
+        var model = configuration[ConfigurationKeys.OllamaModel] ?? "gpt-oss:20b";
         var payload = new
         {
             model,
@@ -224,12 +225,12 @@ public sealed class OpenAiPracticeCoach(
                 cancellationToken);
             var feedback = NormalizeFeedback(completion?.Message.Content, request.Mode);
 
-            return new PracticeResponse(feedback, "ollama");
+            return new PracticeResponse(feedback, PracticeSources.Ollama);
         }
         catch (Exception exception) when (exception is HttpRequestException or JsonException)
         {
             logger.LogWarning(exception, "Ollama feedback generation failed. Returning local fallback.");
-            return new PracticeResponse(FallbackFeedback.ForMode(request.Mode), "local-fallback");
+            return new PracticeResponse(FallbackFeedback.ForMode(request.Mode), PracticeSources.LocalFallback);
         }
     }
 

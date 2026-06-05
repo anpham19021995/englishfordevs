@@ -24,6 +24,7 @@ import {
   submitPractice,
   UserProgress,
 } from "@/lib/api";
+import { authStorageKey, practiceSources } from "@/lib/constants";
 import { practiceModes } from "@/lib/practiceModes";
 import { CheckCircle2, Code2, Mic2, Sparkles } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -76,7 +77,7 @@ export default function Home() {
   useEffect(() => {
     void loadBackendStatus();
 
-    const storedAuth = localStorage.getItem("english-for-devs-auth");
+    const storedAuth = localStorage.getItem(authStorageKey);
 
     if (storedAuth) {
       try {
@@ -84,7 +85,7 @@ export default function Home() {
         setAuth(parsedAuth);
         void validateStoredAuth(parsedAuth);
       } catch {
-        localStorage.removeItem("english-for-devs-auth");
+        localStorage.removeItem(authStorageKey);
       }
     }
   }, []);
@@ -126,7 +127,7 @@ export default function Home() {
       };
 
       localStorage.setItem(
-        "english-for-devs-auth",
+        authStorageKey,
         JSON.stringify(refreshedAuth),
       );
       setAuth(refreshedAuth);
@@ -197,7 +198,7 @@ export default function Home() {
           ? await login(email, password)
           : await register(email, password);
 
-      localStorage.setItem("english-for-devs-auth", JSON.stringify(data));
+      localStorage.setItem(authStorageKey, JSON.stringify(data));
       setAuth(data);
       setPassword("");
       setError("");
@@ -213,7 +214,7 @@ export default function Home() {
   }
 
   function handleLogout() {
-    localStorage.removeItem("english-for-devs-auth");
+    localStorage.removeItem(authStorageKey);
     setAuth(null);
     setHistory([]);
     setProgress(null);
@@ -242,7 +243,7 @@ export default function Home() {
         throw new Error("Feedback was empty.");
       }
 
-      if (data.source === "local-fallback") {
+      if (data.source === practiceSources.localFallback) {
         setError(
           "AI provider is unavailable. Showing local fallback feedback for now.",
         );
@@ -261,7 +262,7 @@ export default function Home() {
               mode,
               message: submittedMessage,
               feedback,
-              source: data.source ?? "openai",
+              source: data.source ?? practiceSources.openAi,
               createdAt: formatCreatedAt(new Date().toISOString()),
             };
 
