@@ -80,8 +80,15 @@ In Render:
 ## 4. Deploy Frontend on Vercel
 
 1. Import the GitHub repository into Vercel.
-2. Set Root Directory to `frontend`.
-3. Use the default Next.js build settings.
+2. Set Root Directory to `frontend`, or keep root and let `vercel.json` build the `frontend` folder.
+3. Use the default Next.js build settings. If configuring manually:
+
+```bash
+Install Command=cd frontend && npm install
+Build Command=cd frontend && npm run build
+Output Directory=frontend/.next
+```
+
 4. Set this environment variable:
 
 ```bash
