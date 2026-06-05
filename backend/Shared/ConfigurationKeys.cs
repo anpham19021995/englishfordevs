@@ -21,6 +21,7 @@ public static class EnvironmentVariableNames
     public const string AiProvider = "AI_PROVIDER";
     public const string ConnectionStringsDefaultConnection = "CONNECTIONSTRINGS__DEFAULTCONNECTION";
     public const string DatabaseConnectionString = "DATABASE_CONNECTION_STRING";
+    public const string DatabaseUrl = "DATABASE_URL";
     public const string OpenAiApiKey = "OPENAI_API_KEY";
     public const string OpenAiModel = "OPENAI_MODEL";
     public const string OllamaApiKey = "OLLAMA_API_KEY";

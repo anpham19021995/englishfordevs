@@ -16,22 +16,25 @@ public static class HealthEndpoints
 
         endpoints.MapGet("/api/health/ai", (
             IConfiguration configuration,
-            IWebHostEnvironment environment) => Results.Ok(new
+            IWebHostEnvironment environment) =>
+        {
+            var databaseConnection = DatabaseConnection.GetConfiguredConnectionString(configuration);
+
+            return Results.Ok(new
             {
                 environment = environment.EnvironmentName,
-                historyStorage = string.IsNullOrWhiteSpace(
-                    configuration.GetConnectionString(ConfigurationKeys.DefaultConnectionName))
+                historyStorage = string.IsNullOrWhiteSpace(databaseConnection)
                     ? HistoryStorageTypes.InMemory
                     : HistoryStorageTypes.Postgres,
-                databaseConfigured = !string.IsNullOrWhiteSpace(
-                    configuration.GetConnectionString(ConfigurationKeys.DefaultConnectionName)),
+                databaseConfigured = !string.IsNullOrWhiteSpace(databaseConnection),
                 jwtSecretConfigured = !string.IsNullOrWhiteSpace(configuration[ConfigurationKeys.JwtSecret]),
                 provider = configuration[ConfigurationKeys.AiProvider] ?? "",
                 openAiApiKeyConfigured = !string.IsNullOrWhiteSpace(configuration[ConfigurationKeys.OpenAiApiKey]),
                 ollamaApiKeyConfigured = !string.IsNullOrWhiteSpace(configuration[ConfigurationKeys.OllamaApiKey]),
                 ollamaBaseUrl = configuration[ConfigurationKeys.OllamaBaseUrl] ?? "",
                 ollamaModel = configuration[ConfigurationKeys.OllamaModel] ?? ""
-            }))
+            });
+        })
         .WithName("AiConfigHealthCheck");
 
         return endpoints;

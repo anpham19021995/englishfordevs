@@ -19,7 +19,7 @@ builder.Configuration.AddInMemoryCollection(LoadMappedEnvironmentConfiguration()
 var isTesting = builder.Environment.IsEnvironment("Testing");
 var databaseConnection = isTesting
     ? ""
-    : builder.Configuration.GetConnectionString(ConfigurationKeys.DefaultConnectionName);
+    : DatabaseConnection.GetConfiguredConnectionString(builder.Configuration);
 var jwtSecret = AuthService.GetJwtSecret(
     builder.Configuration,
     builder.Environment.IsDevelopment() || isTesting);
@@ -163,6 +163,7 @@ static Dictionary<string, string> GetConfigurationMappings()
         [EnvironmentVariableNames.AiProvider] = ConfigurationKeys.AiProvider,
         [EnvironmentVariableNames.ConnectionStringsDefaultConnection] = ConfigurationKeys.DefaultConnectionPath,
         [EnvironmentVariableNames.DatabaseConnectionString] = ConfigurationKeys.DefaultConnectionPath,
+        [EnvironmentVariableNames.DatabaseUrl] = ConfigurationKeys.DefaultConnectionPath,
         [EnvironmentVariableNames.OpenAiApiKey] = ConfigurationKeys.OpenAiApiKey,
         [EnvironmentVariableNames.OpenAiModel] = ConfigurationKeys.OpenAiModel,
         [EnvironmentVariableNames.OllamaApiKey] = ConfigurationKeys.OllamaApiKey,
