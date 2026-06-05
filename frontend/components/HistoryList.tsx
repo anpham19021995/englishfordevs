@@ -1,6 +1,9 @@
+"use client";
+
 import type { HistoryItem } from "@/lib/api";
 import type { PracticeModeOption } from "@/lib/practiceModes";
 import { History, RotateCw, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
 
 type HistoryListProps = {
   history: HistoryItem[];
@@ -13,6 +16,9 @@ type HistoryListProps = {
   onClear: () => void;
 };
 
+type SourceFilter = "all" | "openai" | "ollama" | "local-fallback";
+type ModeFilter = "all" | HistoryItem["mode"];
+
 export function HistoryList({
   history,
   modes,
@@ -23,6 +29,22 @@ export function HistoryList({
   onRefresh,
   onClear,
 }: HistoryListProps) {
+  const [modeFilter, setModeFilter] = useState<ModeFilter>("all");
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
+
+  const filteredHistory = useMemo(
+    () =>
+      history.filter((item) => {
+        const matchesMode =
+          modeFilter === "all" || item.mode === modeFilter;
+        const matchesSource =
+          sourceFilter === "all" || item.source === sourceFilter;
+
+        return matchesMode && matchesSource;
+      }),
+    [history, modeFilter, sourceFilter],
+  );
+
   return (
     <section className="output-panel" aria-live="polite">
       <div className="practice-header">
@@ -68,15 +90,54 @@ export function HistoryList({
         </div>
       ) : null}
       {isAuthenticated && history.length > 0 ? (
-        <div className="history-list">
-          {history.map((item) => {
+        <>
+          <div className="history-filters" aria-label="History filters">
+            <label>
+              <span>Mode</span>
+              <select
+                value={modeFilter}
+                onChange={(event) =>
+                  setModeFilter(event.target.value as ModeFilter)
+                }
+              >
+                <option value="all">All modes</option>
+                {modes.map((mode) => (
+                  <option key={mode.id} value={mode.id}>
+                    {mode.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>Source</span>
+              <select
+                value={sourceFilter}
+                onChange={(event) =>
+                  setSourceFilter(event.target.value as SourceFilter)
+                }
+              >
+                <option value="all">All sources</option>
+                <option value="ollama">Ollama</option>
+                <option value="openai">OpenAI</option>
+                <option value="local-fallback">Local fallback</option>
+              </select>
+            </label>
+          </div>
+
+          {filteredHistory.length > 0 ? (
+            <div className="history-list">
+              {filteredHistory.map((item, index) => {
             const modeTitle =
               modes.find((modeItem) => modeItem.id === item.mode)?.title ??
               "Practice";
 
             return (
-              <article className="history-item" key={item.id}>
-                <header className="history-header">
+              <details
+                className="history-item"
+                key={item.id}
+                open={index === 0}
+              >
+                <summary className="history-header">
                   <div>
                     <strong>{modeTitle}</strong>
                     <p>
@@ -84,7 +145,7 @@ export function HistoryList({
                       {formatSource(item.source)}
                     </p>
                   </div>
-                </header>
+                </summary>
 
                 <div className="history-prompt">
                   <span>Your text</span>
@@ -119,10 +180,16 @@ export function HistoryList({
                     <VocabularyChip key={word} value={word} />
                   ))}
                 </div>
-              </article>
+              </details>
             );
-          })}
-        </div>
+              })}
+            </div>
+          ) : (
+            <div className="empty-state">
+              No saved practice matches the selected filters.
+            </div>
+          )}
+        </>
       ) : isAuthenticated && isLoading ? (
         <div className="empty-state">Loading your saved practice history.</div>
       ) : isAuthenticated ? (

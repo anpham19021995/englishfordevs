@@ -5,8 +5,11 @@
 - [x] Authentication
 - [x] Chat UI
 - [x] OpenAI integration
+- [x] Ollama integration
 - [x] Save practice history
+- [x] Clear practice history
 - [x] User progress tracking
+- [x] Feedback quality prompt tuning
 - [ ] Streaming response
 - [ ] Frontend automated tests
 
@@ -14,7 +17,7 @@
 
 - [ ] Voice input
 - [ ] Pronunciation scoring
-- [ ] Interview mode
+- [ ] Advanced interview mode with scoring and rubrics
 - [ ] Daily challenge
 
 ## Phase 3

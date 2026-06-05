@@ -40,6 +40,16 @@ export type UserProfile = {
   createdAt: string | null;
 };
 
+export type BackendStatus = {
+  environment: string;
+  historyStorage: "postgres" | "in-memory" | string;
+  provider: string;
+  openAiApiKeyConfigured: boolean;
+  ollamaApiKeyConfigured: boolean;
+  ollamaBaseUrl: string;
+  ollamaModel: string;
+};
+
 type PracticeResponse = {
   feedback?: PracticeFeedback;
   source?: string;
@@ -63,6 +73,10 @@ export function hasApiBaseUrl() {
   return Boolean(apiBaseUrl);
 }
 
+export function getApiBaseUrl() {
+  return apiBaseUrl ?? "";
+}
+
 export async function login(email: string, password: string) {
   return sendAuthRequest("login", email, password);
 }
@@ -75,6 +89,10 @@ export async function getProfile(token: string) {
   return request<UserProfile>("/api/me", {
     headers: createAuthHeaders(token),
   });
+}
+
+export async function getBackendStatus() {
+  return request<BackendStatus>("/api/health/ai");
 }
 
 export async function getProgress(token: string) {

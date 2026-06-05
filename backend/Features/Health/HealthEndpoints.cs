@@ -17,6 +17,13 @@ public static class HealthEndpoints
             IWebHostEnvironment environment) => Results.Ok(new
             {
                 environment = environment.EnvironmentName,
+                historyStorage = string.IsNullOrWhiteSpace(
+                    configuration.GetConnectionString("DefaultConnection"))
+                    ? "in-memory"
+                    : "postgres",
+                databaseConfigured = !string.IsNullOrWhiteSpace(
+                    configuration.GetConnectionString("DefaultConnection")),
+                jwtSecretConfigured = !string.IsNullOrWhiteSpace(configuration["Jwt:Secret"]),
                 provider = configuration["AI:Provider"] ?? "",
                 openAiApiKeyConfigured = !string.IsNullOrWhiteSpace(configuration["OpenAI:ApiKey"]),
                 ollamaApiKeyConfigured = !string.IsNullOrWhiteSpace(configuration["Ollama:ApiKey"]),

@@ -14,10 +14,18 @@ From the project root:
 npm run dev:backend
 ```
 
+The local non-Docker API uses `http://localhost:5000`. Point `frontend/.env.local` at that URL when debugging with Visual Studio F5 or `dotnet run`.
+
 When debugging the API with Visual Studio F5, start PostgreSQL first:
 
 ```bash
 npm run dev:postgres
+```
+
+Check local config consistency:
+
+```bash
+npm run dev:check
 ```
 
 With Docker from the project root:
@@ -28,6 +36,7 @@ npm run docker:up
 ```
 
 The containerized API is exposed at `http://localhost:5200`.
+Point `frontend/.env.local` at `http://localhost:5200` only when using the Docker API.
 
 Stop containers:
 
@@ -44,6 +53,7 @@ npm run docker:down:volumes
 ## Endpoints
 
 - `GET /api/health`
+- `GET /api/health/ai`
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/me`
@@ -78,10 +88,12 @@ Supported modes:
 The API returns local fallback feedback when no key is configured.
 When a key is configured, `/api/practice` calls OpenAI and requests structured JSON feedback that matches the frontend contract.
 The API can also use Ollama by setting `AI:Provider` to `ollama`.
+The root `.env` file is loaded for local development, so Visual Studio F5 can read the same AI and database settings even if the process starts as `Production`.
 
 Use environment variables or .NET user secrets:
 
 ```bash
+AI__Provider=openai
 OpenAI__ApiKey=your_api_key_here
 OpenAI__Model=gpt-4o-mini
 Jwt__Secret=replace_with_a_long_random_secret
@@ -102,6 +114,16 @@ Local Ollama:
 AI__Provider=ollama
 Ollama__BaseUrl=http://localhost:11434/api
 Ollama__Model=llama3.1:8b
+```
+
+Root `.env` equivalents:
+
+```bash
+AI_PROVIDER=ollama
+OLLAMA_API_KEY=your_ollama_api_key_here
+OLLAMA_BASE_URL=https://ollama.com/api
+OLLAMA_MODEL=gpt-oss:20b
+JWT_SECRET=replace_with_a_long_random_secret
 ```
 
 For local Visual Studio debugging:
@@ -136,6 +158,21 @@ To persist history in PostgreSQL, set:
 ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=english_for_devs;Username=postgres;Password=postgres
 ```
 
+Or in root `.env`:
+
+```bash
+DATABASE_CONNECTION_STRING=Host=localhost;Port=5432;Database=english_for_devs;Username=postgres;Password=postgres
+```
+
+Check the active storage mode:
+
+```http
+GET /api/health/ai
+```
+
+The response includes `historyStorage`. Use `postgres` for persistent history. If it is `in-memory`, history disappears when the backend restarts.
+The response also includes whether JWT and AI provider keys are configured, without exposing their values.
+
 For local development, the API applies pending EF Core migrations automatically when the PostgreSQL connection is configured.
 
 Docker Compose configures PostgreSQL automatically with:
@@ -143,6 +180,13 @@ Docker Compose configures PostgreSQL automatically with:
 ```bash
 Host=postgres;Port=5432;Database=english_for_devs;Username=postgres;Password=postgres
 ```
+
+## Retention
+
+- JWT login tokens expire after 12 hours.
+- PostgreSQL history persists until the user clears it or the database is reset.
+- In-memory history is process-local and lost on backend restart.
+- History returns 20 recent items by default and supports up to 50 items per request.
 
 ## Migrations
 

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npm run dev:frontend",
+    "dev:check": "powershell -ExecutionPolicy Bypass -File scripts/check-local-dev.ps1",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "dotnet run --project backend/EnglishForDevs.Api.csproj",
     "dev:postgres": "docker compose up postgres",

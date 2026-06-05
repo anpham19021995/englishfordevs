@@ -5,10 +5,14 @@ import { HistoryList } from "@/components/HistoryList";
 import { ModeSelector } from "@/components/ModeSelector";
 import { PracticeComposer } from "@/components/PracticeComposer";
 import { ProgressPanel } from "@/components/ProgressPanel";
+import { StatusPanel } from "@/components/StatusPanel";
 import {
   AuthResponse,
   ApiRequestError,
+  BackendStatus,
   clearHistory,
+  getApiBaseUrl,
+  getBackendStatus,
   getHistory,
   getProfile,
   getProgress,
@@ -55,11 +59,14 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [authError, setAuthError] = useState("");
+  const [statusError, setStatusError] = useState("");
+  const [backendStatus, setBackendStatus] = useState<BackendStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [isProgressLoading, setIsProgressLoading] = useState(false);
   const [isHistoryClearing, setIsHistoryClearing] = useState(false);
+  const [isStatusLoading, setIsStatusLoading] = useState(false);
 
   const activeMode = useMemo(
     () => practiceModes.find((item) => item.id === mode) ?? practiceModes[0],
@@ -67,6 +74,8 @@ export default function Home() {
   );
 
   useEffect(() => {
+    void loadBackendStatus();
+
     const storedAuth = localStorage.getItem("english-for-devs-auth");
 
     if (storedAuth) {
@@ -79,6 +88,29 @@ export default function Home() {
       }
     }
   }, []);
+
+  async function loadBackendStatus() {
+    if (!hasApiBaseUrl()) {
+      setStatusError("Backend API URL is required.");
+      return;
+    }
+
+    setIsStatusLoading(true);
+    setStatusError("");
+
+    try {
+      setBackendStatus(await getBackendStatus());
+    } catch (requestError) {
+      setBackendStatus(null);
+      setStatusError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Could not reach backend.",
+      );
+    } finally {
+      setIsStatusLoading(false);
+    }
+  }
 
   async function validateStoredAuth(storedAuth: AuthResponse) {
     if (!hasApiBaseUrl()) {
@@ -210,6 +242,12 @@ export default function Home() {
         throw new Error("Feedback was empty.");
       }
 
+      if (data.source === "local-fallback") {
+        setError(
+          "AI provider is unavailable. Showing local fallback feedback for now.",
+        );
+      }
+
       const feedback = data.feedback;
       const savedAttempt = data.attempt;
       setHistory((currentHistory) => {
@@ -234,6 +272,7 @@ export default function Home() {
       });
       void loadHistory(auth.token);
       void loadProgress(auth.token);
+      void loadBackendStatus();
       setMessage("");
     } catch (requestError) {
       setError(
@@ -342,13 +381,24 @@ export default function Home() {
             />
           ) : null}
 
+          <p className="section-label">System</p>
+          <StatusPanel
+            apiBaseUrl={getApiBaseUrl()}
+            status={backendStatus}
+            error={statusError}
+            isLoading={isStatusLoading}
+            onRefresh={() => {
+              void loadBackendStatus();
+            }}
+          />
+
           <p className="section-label">Roadmap</p>
           <div className="metrics">
             <div className="metric">
               <CheckCircle2 size={22} aria-hidden="true" />
               <div>
                 <strong>Phase 1</strong>
-                <span>Chat UI, OpenAI integration, history later</span>
+                <span>Auth, AI feedback, saved history, progress</span>
               </div>
             </div>
             <div className="metric">

@@ -8,13 +8,16 @@ AI-powered English learning platform for software engineers.
 - IT conversation practice
 - Grammar correction
 - Vietnamese -> Professional English conversion
+- Saved practice history and progress tracking
+- Clear saved practice history per account
+- Filterable, collapsible history list for longer sessions
 
 ## Tech Stack
 
 - ASP.NET Core
 - Next.js
 - PostgreSQL
-- OpenAI API
+- OpenAI API or Ollama API
 
 ## Screenshots
 
@@ -45,10 +48,44 @@ Backend API:
 npm run dev:backend
 ```
 
-If you debug the backend with Visual Studio F5 and use the PostgreSQL connection in user secrets, start PostgreSQL first:
+## Local Dev Modes
+
+Use one backend mode at a time:
+
+- Visual Studio F5 or `npm run dev:backend`: backend at `http://localhost:5000`
+- Docker Compose API: backend at `http://localhost:5200`
+
+For Visual Studio F5 or `dotnet run`, set `frontend/.env.local` to:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+```
+
+For Docker Compose API, set it to:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5200
+```
+
+If you debug the backend with Visual Studio F5 and want persistent history, start PostgreSQL first:
 
 ```bash
 npm run dev:postgres
+```
+
+Then make sure the backend reports PostgreSQL storage:
+
+```bash
+GET http://localhost:5000/api/health/ai
+```
+
+The response should include `"historyStorage": "postgres"`. If it says `"in-memory"`, history will be lost when the backend process restarts.
+The frontend sidebar also shows backend URL, AI provider, environment, and history storage status.
+
+Run the local dev consistency check:
+
+```bash
+npm run dev:check
 ```
 
 Backend API with Docker and PostgreSQL:
@@ -72,7 +109,7 @@ To stop services and remove the local PostgreSQL volume:
 npm run docker:down:volumes
 ```
 
-To connect the frontend to the backend, set this in `frontend/.env.local`:
+To connect the frontend to the Docker backend, set this in `frontend/.env.local`:
 
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://localhost:5200
@@ -81,6 +118,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:5200
 The backend exposes:
 
 - `GET /api/health`
+- `GET /api/health/ai`
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/me`
@@ -119,26 +157,30 @@ dotnet ef database update --project backend/EnglishForDevs.Api.csproj --startup-
 
 ## Environment
 
-Frontend OpenAI variables live in `frontend/.env.local`.
+Frontend variables live in `frontend/.env.local`.
 
-Backend OpenAI variables can be set with .NET user secrets, environment variables, or `backend/appsettings.Development.json`:
+Backend variables can be set with .NET user secrets, environment variables, or the root `.env` file:
 
 ```bash
-OpenAI__ApiKey=your_api_key_here
-OpenAI__Model=gpt-4o-mini
-Jwt__Secret=replace_with_a_long_random_secret
+AI_PROVIDER=ollama
+DATABASE_CONNECTION_STRING=Host=localhost;Port=5432;Database=english_for_devs;Username=postgres;Password=postgres
+OLLAMA_API_KEY=your_ollama_api_key_here
+OLLAMA_BASE_URL=https://ollama.com/api
+OLLAMA_MODEL=gpt-oss:20b
+JWT_SECRET=replace_with_a_long_random_secret
 ```
 
-The practice endpoint uses OpenAI structured outputs so feedback matches the app contract:
+The practice endpoint requests structured feedback matching the app contract:
 
 - `directReply`
 - `correctedVersion`
 - `naturalVersion`
-- `vocabulary`
+- `vocabulary` as `phrase - meaning/example`
 - `confidenceFeedback`
 - `followUpQuestion`
 
-If no OpenAI key is configured, the backend returns local fallback feedback and marks the attempt source as `local-fallback`.
+If no AI provider key is configured, or the provider call fails, the backend returns local fallback feedback and marks the attempt source as `local-fallback`.
+The frontend shows a warning when fallback feedback is displayed.
 
 Backend history storage uses in-memory storage by default. To persist practice history in PostgreSQL, set:
 
@@ -165,6 +207,7 @@ Docker Compose also reads these values from the root `.env` file:
 
 ```bash
 AI_PROVIDER=openai
+DATABASE_CONNECTION_STRING=Host=localhost;Port=5432;Database=english_for_devs;Username=postgres;Password=postgres
 OPENAI_API_KEY=your_api_key_here
 OPENAI_MODEL=gpt-4o-mini
 OLLAMA_API_KEY=your_ollama_api_key_here
@@ -177,3 +220,10 @@ To use Ollama Cloud instead of OpenAI, set `AI_PROVIDER=ollama` and provide `OLL
 For local Ollama, use `OLLAMA_BASE_URL=http://host.docker.internal:11434/api` in Docker, or `http://localhost:11434/api` when running the backend directly.
 
 Profile, practice, history, and progress endpoints require a JWT from `/api/auth/login` or `/api/auth/register`.
+
+## Session and History Retention
+
+- Login JWTs expire after 12 hours.
+- PostgreSQL practice history is kept until the user clears it or the database is reset.
+- In-memory fallback history is lost when the backend restarts.
+- History fetch returns 20 items by default and supports up to 50 items per request.

@@ -106,6 +106,8 @@ static Dictionary<string, string?> LoadDotEnvConfiguration()
     var mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
         ["AI_PROVIDER"] = "AI:Provider",
+        ["CONNECTIONSTRINGS__DEFAULTCONNECTION"] = "ConnectionStrings:DefaultConnection",
+        ["DATABASE_CONNECTION_STRING"] = "ConnectionStrings:DefaultConnection",
         ["OPENAI_API_KEY"] = "OpenAI:ApiKey",
         ["OPENAI_MODEL"] = "OpenAI:Model",
         ["OLLAMA_API_KEY"] = "Ollama:ApiKey",
