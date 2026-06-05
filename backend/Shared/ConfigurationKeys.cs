@@ -13,6 +13,7 @@ public static class ConfigurationKeys
     public const string OllamaApiKey = "Ollama:ApiKey";
     public const string OllamaBaseUrl = "Ollama:BaseUrl";
     public const string OllamaModel = "Ollama:Model";
+    public const string CorsAllowedOrigins = "Cors:AllowedOrigins";
 }
 
 public static class EnvironmentVariableNames
@@ -26,4 +27,5 @@ public static class EnvironmentVariableNames
     public const string OllamaBaseUrl = "OLLAMA_BASE_URL";
     public const string OllamaModel = "OLLAMA_MODEL";
     public const string JwtSecret = "JWT_SECRET";
+    public const string CorsAllowedOrigins = "CORS_ALLOWED_ORIGINS";
 }

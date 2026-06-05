@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: english-for-devs-api
+    runtime: docker
+    plan: free
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
+      - key: AI_PROVIDER
+        value: ollama
+      - key: OLLAMA_BASE_URL
+        value: https://ollama.com/api
+      - key: OLLAMA_MODEL
+        value: gpt-oss:20b
+      - key: OLLAMA_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_CONNECTION_STRING
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false

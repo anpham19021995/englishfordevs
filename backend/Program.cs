@@ -44,7 +44,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(ApplicationConstants.FrontendCorsPolicy, policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
+            .WithOrigins(GetAllowedOrigins(builder.Configuration))
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -114,7 +114,8 @@ static Dictionary<string, string?> LoadDotEnvConfiguration()
         [EnvironmentVariableNames.OllamaApiKey] = ConfigurationKeys.OllamaApiKey,
         [EnvironmentVariableNames.OllamaBaseUrl] = ConfigurationKeys.OllamaBaseUrl,
         [EnvironmentVariableNames.OllamaModel] = ConfigurationKeys.OllamaModel,
-        [EnvironmentVariableNames.JwtSecret] = ConfigurationKeys.JwtSecret
+        [EnvironmentVariableNames.JwtSecret] = ConfigurationKeys.JwtSecret,
+        [EnvironmentVariableNames.CorsAllowedOrigins] = ConfigurationKeys.CorsAllowedOrigins
     };
     var values = new Dictionary<string, string?>();
 
@@ -147,6 +148,22 @@ static Dictionary<string, string?> LoadDotEnvConfiguration()
     }
 
     return values;
+}
+
+static string[] GetAllowedOrigins(IConfiguration configuration)
+{
+    var configuredOrigins = configuration[ConfigurationKeys.CorsAllowedOrigins];
+
+    if (string.IsNullOrWhiteSpace(configuredOrigins))
+    {
+        return ["http://localhost:3000", "http://127.0.0.1:3000"];
+    }
+
+    return configuredOrigins
+        .Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Where(origin => Uri.TryCreate(origin, UriKind.Absolute, out _))
+        .DefaultIfEmpty("http://localhost:3000")
+        .ToArray();
 }
 
 static string? FindDotEnvFile()

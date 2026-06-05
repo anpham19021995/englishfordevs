@@ -23,6 +23,10 @@ AI-powered English learning platform for software engineers.
 
 ## Roadmap
 
+- [Phase 1 release note](PHASE1_RELEASE.md)
+- [Product roadmap](ROADMAP.md)
+- [Deployment guide](DEPLOYMENT.md)
+
 ## Running locally
 
 From the project root:
@@ -168,6 +172,7 @@ OLLAMA_API_KEY=your_ollama_api_key_here
 OLLAMA_BASE_URL=https://ollama.com/api
 OLLAMA_MODEL=gpt-oss:20b
 JWT_SECRET=replace_with_a_long_random_secret
+CORS_ALLOWED_ORIGINS=http://localhost:3000
 ```
 
 The practice endpoint requests structured feedback matching the app contract:

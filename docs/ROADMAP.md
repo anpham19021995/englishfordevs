@@ -1,6 +1,6 @@
 # Product Roadmap
 
-## Phase 1
+## Phase 1 - MVP Complete
 
 - [x] Authentication
 - [x] Chat UI
@@ -10,6 +10,13 @@
 - [x] Clear practice history
 - [x] User progress tracking
 - [x] Feedback quality prompt tuning
+- [x] Better error UX and provider/status panel
+- [x] Backend validation hardening
+- [x] Local dev consistency
+- [x] Phase 1 checklist/release note
+
+## Phase 1 Nice-to-Have / Deferred
+
 - [ ] Streaming response
 - [ ] Frontend automated tests
 
