@@ -3,7 +3,7 @@ services:
     name: english-for-devs-api
     runtime: docker
     plan: free
-    dockerContext: ./backend
+    dockerContext: .
     dockerfilePath: ./backend/Dockerfile
     healthCheckPath: /api/health
     envVars:

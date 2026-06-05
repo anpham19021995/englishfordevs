@@ -6,10 +6,10 @@ EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY EnglishForDevs.Api.csproj ./
-RUN dotnet restore ./EnglishForDevs.Api.csproj
+COPY backend/EnglishForDevs.Api.csproj ./backend/
+RUN dotnet restore ./backend/EnglishForDevs.Api.csproj
 COPY . ./
-RUN dotnet publish ./EnglishForDevs.Api.csproj \
+RUN dotnet publish ./backend/EnglishForDevs.Api.csproj \
     --configuration Release \
     --output /app/publish \
     /p:UseAppHost=false
