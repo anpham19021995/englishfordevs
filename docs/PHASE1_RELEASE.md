@@ -32,6 +32,7 @@ Phase 1 is the first usable MVP of English for Developers. The goal is to let a 
 - [x] Practice history saved per account
 - [x] Clear current user's practice history
 - [x] Scrollable, filterable, collapsible history UX
+- [x] Developer vocabulary panel with static top phrases and history-derived personal phrases
 - [x] User progress tracking
 - [x] PostgreSQL persistence when configured
 - [x] In-memory fallback for local development

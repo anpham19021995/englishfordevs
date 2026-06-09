@@ -6,6 +6,7 @@ import { ModeSelector } from "@/components/ModeSelector";
 import { PracticeComposer } from "@/components/PracticeComposer";
 import { ProgressPanel } from "@/components/ProgressPanel";
 import { StatusPanel } from "@/components/StatusPanel";
+import { VocabularyPanel } from "@/components/VocabularyPanel";
 import {
   AuthResponse,
   ApiRequestError,
@@ -438,6 +439,14 @@ export default function Home() {
             isAuthenticated={Boolean(auth)}
             onMessageChange={setMessage}
             onSubmit={handleSubmit}
+          />
+
+          <VocabularyPanel
+            history={history}
+            onPracticePhrase={(phrase) => {
+              setMessage(`Can you help me use "${phrase}" in a developer work sentence?`);
+              setError("");
+            }}
           />
 
           <HistoryList

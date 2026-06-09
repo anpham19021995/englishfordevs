@@ -60,7 +60,8 @@ button {
 
 .sidebar,
 .practice-panel,
-.output-panel {
+.output-panel,
+.vocabulary-panel {
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(217, 224, 232, 0.86);
   box-shadow: var(--shadow);
@@ -410,7 +411,8 @@ button {
 }
 
 .practice-panel,
-.output-panel {
+.output-panel,
+.vocabulary-panel {
   border-radius: 8px;
   padding: 20px;
 }
@@ -432,9 +434,17 @@ button {
 }
 
 .practice-header h3,
-.output-panel h3 {
+.output-panel h3,
+.vocabulary-panel h3 {
   margin: 0;
   font-size: 1.05rem;
+}
+
+.panel-subtitle {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .status-pill {
@@ -528,6 +538,152 @@ textarea:focus {
 
 .output-panel {
   min-height: 240px;
+}
+
+.vocabulary-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(220px, 1fr) minmax(180px, 0.8fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.segmented-control button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.segmented-control button[aria-pressed="true"] {
+  background: white;
+  color: var(--teal);
+  box-shadow: 0 1px 6px rgba(31, 45, 61, 0.1);
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--muted);
+}
+
+.search-field input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  color: var(--ink);
+  outline: 0;
+}
+
+.category-filter {
+  display: grid;
+  gap: 5px;
+}
+
+.category-filter span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.category-filter select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+}
+
+.search-field:focus-within,
+.category-filter select:focus {
+  border-color: var(--teal);
+  outline: 3px solid rgba(8, 127, 131, 0.16);
+}
+
+.vocabulary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.vocabulary-card {
+  display: grid;
+  gap: 9px;
+  align-content: start;
+  min-height: 178px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.vocabulary-card span {
+  display: inline-flex;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.vocabulary-card h4 {
+  margin: 0;
+  color: var(--teal);
+  font-size: 1rem;
+}
+
+.vocabulary-card p,
+.vocabulary-card small {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.vocabulary-card small {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.vocabulary-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.vocabulary-card-footer strong {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.vocabulary-card-footer .secondary-button {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 0.82rem;
 }
 
 .history-filters {
@@ -717,6 +873,11 @@ textarea:focus {
   }
 
   .history-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .vocabulary-toolbar,
+  .vocabulary-grid {
     grid-template-columns: 1fr;
   }
 

@@ -22,6 +22,10 @@
 - Saved practice history per account.
 - Clear all saved history for the current account.
 - Scrollable, filterable, collapsible history list for longer practice sessions.
+- Developer vocabulary panel:
+  - Static top vocabulary for software engineering communication
+  - Personal vocabulary derived from AI feedback history
+  - Search and category filters
 - Progress tracking:
   - Total practices
   - Mode counts

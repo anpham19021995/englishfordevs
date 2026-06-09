@@ -11,6 +11,7 @@ AI-powered English learning platform for software engineers.
 - Saved practice history and progress tracking
 - Clear saved practice history per account
 - Filterable, collapsible history list for longer sessions
+- Developer vocabulary with top phrases and history-derived personal terms
 
 ## Tech Stack
 
