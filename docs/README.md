@@ -171,7 +171,7 @@ AI_PROVIDER=ollama
 DATABASE_CONNECTION_STRING=Host=localhost;Port=5432;Database=english_for_devs;Username=postgres;Password=postgres
 OLLAMA_API_KEY=your_ollama_api_key_here
 OLLAMA_BASE_URL=https://ollama.com/api
-OLLAMA_MODEL=gpt-oss:20b
+OLLAMA_MODEL=gemma3:4b
 JWT_SECRET=replace_with_a_long_random_secret
 CORS_ALLOWED_ORIGINS=http://localhost:3000
 ```
@@ -218,7 +218,7 @@ OPENAI_API_KEY=your_api_key_here
 OPENAI_MODEL=gpt-4o-mini
 OLLAMA_API_KEY=your_ollama_api_key_here
 OLLAMA_BASE_URL=https://ollama.com/api
-OLLAMA_MODEL=gpt-oss:20b
+OLLAMA_MODEL=gemma3:4b
 JWT_SECRET=replace_with_a_long_random_secret
 ```
 

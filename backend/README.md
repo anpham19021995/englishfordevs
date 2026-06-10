@@ -105,7 +105,7 @@ Ollama Cloud:
 AI__Provider=ollama
 Ollama__ApiKey=your_ollama_api_key_here
 Ollama__BaseUrl=https://ollama.com/api
-Ollama__Model=gpt-oss:20b
+Ollama__Model=gemma3:4b
 ```
 
 Local Ollama:
@@ -122,7 +122,7 @@ Root `.env` equivalents:
 AI_PROVIDER=ollama
 OLLAMA_API_KEY=your_ollama_api_key_here
 OLLAMA_BASE_URL=https://ollama.com/api
-OLLAMA_MODEL=gpt-oss:20b
+OLLAMA_MODEL=gemma3:4b
 JWT_SECRET=replace_with_a_long_random_secret
 ```
 
