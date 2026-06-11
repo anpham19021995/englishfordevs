@@ -737,6 +737,11 @@ textarea:focus {
   background: rgba(255, 255, 255, 0.78);
 }
 
+.history-item.is-latest {
+  border-color: rgba(8, 127, 131, 0.72);
+  box-shadow: 0 0 0 3px rgba(8, 127, 131, 0.12);
+}
+
 .history-header {
   display: flex;
   align-items: flex-start;

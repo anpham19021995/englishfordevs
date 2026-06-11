@@ -4,7 +4,7 @@ import type { HistoryItem } from "@/lib/api";
 import { practiceSources } from "@/lib/constants";
 import type { PracticeModeOption } from "@/lib/practiceModes";
 import { History, RotateCw, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type HistoryListProps = {
   history: HistoryItem[];
@@ -13,6 +13,7 @@ type HistoryListProps = {
   isAuthenticated: boolean;
   isLoading: boolean;
   isClearing: boolean;
+  focusedItemId: string;
   onRefresh: () => void;
   onClear: () => void;
 };
@@ -27,11 +28,14 @@ export function HistoryList({
   isAuthenticated,
   isLoading,
   isClearing,
+  focusedItemId,
   onRefresh,
   onClear,
 }: HistoryListProps) {
   const [modeFilter, setModeFilter] = useState<ModeFilter>("all");
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
+  const panelRef = useRef<HTMLElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const filteredHistory = useMemo(
     () =>
@@ -46,8 +50,28 @@ export function HistoryList({
     [history, modeFilter, sourceFilter],
   );
 
+  useEffect(() => {
+    if (!focusedItemId) {
+      return;
+    }
+
+    setModeFilter("all");
+    setSourceFilter("all");
+
+    window.requestAnimationFrame(() => {
+      panelRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      listRef.current?.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    });
+  }, [focusedItemId]);
+
   return (
-    <section className="output-panel" aria-live="polite">
+    <section className="output-panel" aria-live="polite" ref={panelRef}>
       <div className="practice-header">
         <h3>Session history</h3>
         <div className="header-actions">
@@ -126,17 +150,18 @@ export function HistoryList({
           </div>
 
           {filteredHistory.length > 0 ? (
-            <div className="history-list">
+            <div className="history-list" ref={listRef}>
               {filteredHistory.map((item, index) => {
             const modeTitle =
               modes.find((modeItem) => modeItem.id === item.mode)?.title ??
               "Practice";
+            const isFocusedItem = item.id === focusedItemId;
 
             return (
               <details
-                className="history-item"
+                className={`history-item${isFocusedItem ? " is-latest" : ""}`}
                 key={item.id}
-                open={index === 0}
+                open={index === 0 || isFocusedItem}
               >
                 <summary className="history-header">
                   <div>

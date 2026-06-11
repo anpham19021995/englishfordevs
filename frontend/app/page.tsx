@@ -69,6 +69,7 @@ export default function Home() {
   const [isProgressLoading, setIsProgressLoading] = useState(false);
   const [isHistoryClearing, setIsHistoryClearing] = useState(false);
   const [isStatusLoading, setIsStatusLoading] = useState(false);
+  const [focusedHistoryItemId, setFocusedHistoryItemId] = useState("");
 
   const activeMode = useMemo(
     () => practiceModes.find((item) => item.id === mode) ?? practiceModes[0],
@@ -252,26 +253,27 @@ export default function Home() {
 
       const feedback = data.feedback;
       const savedAttempt = data.attempt;
-      setHistory((currentHistory) => {
-        const nextItem = savedAttempt
-          ? {
-              ...savedAttempt,
-              createdAt: formatCreatedAt(savedAttempt.createdAt),
-            }
-          : {
-              id: crypto.randomUUID(),
-              mode,
-              message: submittedMessage,
-              feedback,
-              source: data.source ?? practiceSources.openAi,
-              createdAt: formatCreatedAt(new Date().toISOString()),
-            };
+      const nextItem = savedAttempt
+        ? {
+            ...savedAttempt,
+            createdAt: formatCreatedAt(savedAttempt.createdAt),
+          }
+        : {
+            id: crypto.randomUUID(),
+            mode,
+            message: submittedMessage,
+            feedback,
+            source: data.source ?? practiceSources.openAi,
+            createdAt: formatCreatedAt(new Date().toISOString()),
+          };
 
+      setHistory((currentHistory) => {
         return [
           nextItem,
           ...currentHistory.filter((item) => item.id !== nextItem.id),
         ];
       });
+      setFocusedHistoryItemId(nextItem.id);
       void loadHistory(auth.token);
       void loadProgress(auth.token);
       void loadBackendStatus();
@@ -456,6 +458,7 @@ export default function Home() {
             isAuthenticated={Boolean(auth)}
             isLoading={isHistoryLoading}
             isClearing={isHistoryClearing}
+            focusedItemId={focusedHistoryItemId}
             onRefresh={() => {
               if (auth?.token) {
                 void loadHistory(auth.token);
