@@ -10,6 +10,13 @@ public static class PracticeEndpoints
         group.MapPost("/", GeneratePracticeFeedback.HandleAsync)
             .WithName("PracticeFeedback");
 
+        group.MapPost("/transcribe", TranscribePracticeAudio.HandleAsync)
+            .DisableAntiforgery()
+            .WithName("TranscribePracticeAudio");
+
+        group.MapPost("/tts", SynthesizePracticeSpeech.HandleAsync)
+            .WithName("SynthesizePracticeSpeech");
+
         group.MapGet("/history", GetPracticeHistory.HandleAsync)
             .WithName("PracticeHistory");
 

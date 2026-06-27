@@ -73,6 +73,16 @@ export function StatusPanel({
             }
           />
           <StatusRow
+            tone={status.azureSpeechConfigured ? "ok" : "warning"}
+            icon={status.azureSpeechConfigured ? CheckCircle2 : AlertTriangle}
+            label="Voice"
+            value={
+              status.azureSpeechConfigured
+                ? `Azure Speech ${status.azureSpeechRegion || ""}`.trim()
+                : "Azure Speech not configured"
+            }
+          />
+          <StatusRow
             tone="neutral"
             icon={Server}
             label="Environment"

@@ -3,7 +3,7 @@
 import type { HistoryItem } from "@/lib/api";
 import { practiceSources } from "@/lib/constants";
 import type { PracticeModeOption } from "@/lib/practiceModes";
-import { History, RotateCw, Trash2 } from "lucide-react";
+import { History, RotateCw, Trash2, Volume2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type HistoryListProps = {
@@ -14,6 +14,8 @@ type HistoryListProps = {
   isLoading: boolean;
   isClearing: boolean;
   focusedItemId: string;
+  speakingText: string;
+  onSpeak: (text: string) => void;
   onRefresh: () => void;
   onClear: () => void;
 };
@@ -29,6 +31,8 @@ export function HistoryList({
   isLoading,
   isClearing,
   focusedItemId,
+  speakingText,
+  onSpeak,
   onRefresh,
   onClear,
 }: HistoryListProps) {
@@ -182,14 +186,20 @@ export function HistoryList({
                   <FeedbackBlock
                     title="Direct reply"
                     value={item.feedback.directReply}
+                    isSpeaking={speakingText === item.feedback.directReply}
+                    onSpeak={onSpeak}
                   />
                   <FeedbackBlock
                     title="Corrected version"
                     value={item.feedback.correctedVersion}
+                    isSpeaking={speakingText === item.feedback.correctedVersion}
+                    onSpeak={onSpeak}
                   />
                   <FeedbackBlock
                     title="Natural version"
                     value={item.feedback.naturalVersion}
+                    isSpeaking={speakingText === item.feedback.naturalVersion}
+                    onSpeak={onSpeak}
                   />
                   <FeedbackBlock
                     title="Confidence"
@@ -198,6 +208,8 @@ export function HistoryList({
                   <FeedbackBlock
                     title="Follow-up question"
                     value={item.feedback.followUpQuestion}
+                    isSpeaking={speakingText === item.feedback.followUpQuestion}
+                    onSpeak={onSpeak}
                   />
                 </div>
 
@@ -240,10 +252,34 @@ function formatSource(source: string) {
   return "local fallback";
 }
 
-function FeedbackBlock({ title, value }: { title: string; value: string }) {
+function FeedbackBlock({
+  title,
+  value,
+  isSpeaking = false,
+  onSpeak,
+}: {
+  title: string;
+  value: string;
+  isSpeaking?: boolean;
+  onSpeak?: (text: string) => void;
+}) {
   return (
     <div className="feedback-block">
-      <span>{title}</span>
+      <div className="feedback-block-header">
+        <span>{title}</span>
+        {onSpeak ? (
+          <button
+            className="icon-button compact-icon-button"
+            type="button"
+            aria-label={`Play ${title}`}
+            title={`Play ${title}`}
+            onClick={() => onSpeak(value)}
+            disabled={isSpeaking}
+          >
+            <Volume2 size={15} aria-hidden="true" />
+          </button>
+        ) : null}
+      </div>
       <p>{value}</p>
     </div>
   );

@@ -129,6 +129,8 @@ The backend exposes:
 - `GET /api/me`
 - `GET /api/me/progress`
 - `POST /api/practice`
+- `POST /api/practice/transcribe`
+- `POST /api/practice/tts`
 - `GET /api/practice/history`
 - `DELETE /api/practice/history`
 
@@ -172,6 +174,9 @@ DATABASE_CONNECTION_STRING=Host=localhost;Port=5432;Database=english_for_devs;Us
 OLLAMA_API_KEY=your_ollama_api_key_here
 OLLAMA_BASE_URL=https://ollama.com/api
 OLLAMA_MODEL=gemma3:4b
+AZURE_SPEECH_KEY=your_azure_speech_key_here
+AZURE_SPEECH_REGION=southeastasia
+AZURE_SPEECH_VOICE=en-US-JennyNeural
 JWT_SECRET=replace_with_a_long_random_secret
 CORS_ALLOWED_ORIGINS=http://localhost:3000
 ```
@@ -219,6 +224,9 @@ OPENAI_MODEL=gpt-4o-mini
 OLLAMA_API_KEY=your_ollama_api_key_here
 OLLAMA_BASE_URL=https://ollama.com/api
 OLLAMA_MODEL=gemma3:4b
+AZURE_SPEECH_KEY=your_azure_speech_key_here
+AZURE_SPEECH_REGION=southeastasia
+AZURE_SPEECH_VOICE=en-US-JennyNeural
 JWT_SECRET=replace_with_a_long_random_secret
 ```
 
@@ -226,6 +234,7 @@ To use Ollama Cloud instead of OpenAI, set `AI_PROVIDER=ollama` and provide `OLL
 For local Ollama, use `OLLAMA_BASE_URL=http://host.docker.internal:11434/api` in Docker, or `http://localhost:11434/api` when running the backend directly.
 
 Profile, practice, history, and progress endpoints require a JWT from `/api/auth/login` or `/api/auth/register`.
+Voice transcription and text-to-speech endpoints also require a JWT. The app does not store raw audio; transcribed text is only saved if the user submits it for feedback.
 
 ## Validation Rules
 

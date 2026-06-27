@@ -32,7 +32,12 @@ public static class HealthEndpoints
                 openAiApiKeyConfigured = !string.IsNullOrWhiteSpace(configuration[ConfigurationKeys.OpenAiApiKey]),
                 ollamaApiKeyConfigured = !string.IsNullOrWhiteSpace(configuration[ConfigurationKeys.OllamaApiKey]),
                 ollamaBaseUrl = configuration[ConfigurationKeys.OllamaBaseUrl] ?? "",
-                ollamaModel = configuration[ConfigurationKeys.OllamaModel] ?? ""
+                ollamaModel = configuration[ConfigurationKeys.OllamaModel] ?? "",
+                azureSpeechConfigured =
+                    !string.IsNullOrWhiteSpace(configuration[ConfigurationKeys.AzureSpeechKey]) &&
+                    !string.IsNullOrWhiteSpace(configuration[ConfigurationKeys.AzureSpeechRegion]),
+                azureSpeechRegion = configuration[ConfigurationKeys.AzureSpeechRegion] ?? "",
+                azureSpeechVoice = configuration[ConfigurationKeys.AzureSpeechVoice] ?? ""
             });
         })
         .WithName("AiConfigHealthCheck");

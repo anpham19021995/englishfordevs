@@ -23,13 +23,15 @@ import {
   login,
   PracticeMode,
   register,
+  synthesizePracticeSpeech,
   submitPractice,
+  transcribePracticeAudio,
   UserProgress,
 } from "@/lib/api";
 import { authStorageKey, practiceSources } from "@/lib/constants";
 import { practiceModes } from "@/lib/practiceModes";
 import { CheckCircle2, Code2, Mic2, Sparkles } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type AuthMode = "login" | "register";
 type Theme = "light" | "dark";
@@ -73,8 +75,12 @@ export default function Home() {
   const [isProgressLoading, setIsProgressLoading] = useState(false);
   const [isHistoryClearing, setIsHistoryClearing] = useState(false);
   const [isStatusLoading, setIsStatusLoading] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [speakingText, setSpeakingText] = useState("");
   const [focusedHistoryItemId, setFocusedHistoryItemId] = useState("");
   const [theme, setTheme] = useState<Theme>("light");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef("");
 
   const activeMode = useMemo(
     () => practiceModes.find((item) => item.id === mode) ?? practiceModes[0],
@@ -109,6 +115,17 @@ export default function Home() {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem(themeStorageKey, theme);
   }, [theme]);
+
+  useEffect(
+    () => () => {
+      audioRef.current?.pause();
+
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+      }
+    },
+    [],
+  );
 
   async function loadBackendStatus() {
     if (!hasApiBaseUrl()) {
@@ -307,6 +324,77 @@ export default function Home() {
     }
   }
 
+  async function handleTranscribeAudio(audio: Blob) {
+    if (!auth?.token) {
+      setError("Please sign in before recording voice.");
+      return;
+    }
+
+    setIsTranscribing(true);
+    setError("");
+
+    try {
+      const data = await transcribePracticeAudio(auth.token, audio);
+
+      if (!data.transcript) {
+        throw new Error("Transcript was empty.");
+      }
+
+      setMessage(data.transcript);
+    } catch (requestError) {
+      handleRequestError(requestError, "Could not transcribe audio.");
+    } finally {
+      setIsTranscribing(false);
+    }
+  }
+
+  async function handleSpeak(text: string) {
+    if (!auth?.token) {
+      setError("Please sign in before playing speech audio.");
+      return;
+    }
+
+    const trimmedText = text.trim();
+
+    if (!trimmedText) {
+      return;
+    }
+
+    setSpeakingText(trimmedText);
+    setError("");
+
+    try {
+      audioRef.current?.pause();
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = "";
+      }
+
+      const audioBlob = await synthesizePracticeSpeech(auth.token, trimmedText);
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+
+      audioRef.current = audio;
+      audioUrlRef.current = audioUrl;
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+        audioUrlRef.current = "";
+        setSpeakingText("");
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(audioUrl);
+        audioUrlRef.current = "";
+        setSpeakingText("");
+        setError("Could not play speech audio.");
+      };
+
+      await audio.play();
+    } catch (requestError) {
+      setSpeakingText("");
+      handleRequestError(requestError, "Could not create speech audio.");
+    }
+  }
+
   async function handleClearHistory() {
     if (!auth?.token || history.length === 0) {
       return;
@@ -457,8 +545,13 @@ export default function Home() {
             activeMode={activeMode}
             message={message}
             isLoading={isLoading}
+            isTranscribing={isTranscribing}
             isAuthenticated={Boolean(auth)}
             onMessageChange={setMessage}
+            onTranscribeAudio={(audio) => {
+              void handleTranscribeAudio(audio);
+            }}
+            onVoiceError={setError}
             onSubmit={handleSubmit}
           />
 
@@ -478,6 +571,10 @@ export default function Home() {
             isLoading={isHistoryLoading}
             isClearing={isHistoryClearing}
             focusedItemId={focusedHistoryItemId}
+            speakingText={speakingText}
+            onSpeak={(text) => {
+              void handleSpeak(text);
+            }}
             onRefresh={() => {
               if (auth?.token) {
                 void loadHistory(auth.token);

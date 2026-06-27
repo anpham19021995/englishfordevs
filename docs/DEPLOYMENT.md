@@ -74,6 +74,9 @@ AI_PROVIDER=ollama
 OLLAMA_API_KEY=your_ollama_api_key
 OLLAMA_BASE_URL=https://ollama.com/api
 OLLAMA_MODEL=gemma3:4b
+AZURE_SPEECH_KEY=your_azure_speech_key
+AZURE_SPEECH_REGION=southeastasia
+AZURE_SPEECH_VOICE=en-US-JennyNeural
 JWT_SECRET=replace_with_a_long_random_secret
 CORS_ALLOWED_ORIGINS=https://www.sampham.it.com,https://polite-meadow-0bda1e610.7.azurestaticapps.net,http://localhost:3000
 ```
@@ -82,6 +85,7 @@ Store these as secure values when the Azure UI offers it:
 
 - `DATABASE_CONNECTION_STRING`
 - `OLLAMA_API_KEY`
+- `AZURE_SPEECH_KEY`
 - `JWT_SECRET`
 
 After deploy, verify:

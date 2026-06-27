@@ -51,6 +51,7 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddHttpClient<IOpenAiPracticeCoach, OpenAiPracticeCoach>();
+builder.Services.AddHttpClient<IVoicePracticeService, AzureSpeechPracticeService>();
 builder.Services.AddScoped<PasswordHasher<AppUser>>();
 
 if (string.IsNullOrWhiteSpace(databaseConnection))
@@ -169,6 +170,9 @@ static Dictionary<string, string> GetConfigurationMappings()
         [EnvironmentVariableNames.OllamaApiKey] = ConfigurationKeys.OllamaApiKey,
         [EnvironmentVariableNames.OllamaBaseUrl] = ConfigurationKeys.OllamaBaseUrl,
         [EnvironmentVariableNames.OllamaModel] = ConfigurationKeys.OllamaModel,
+        [EnvironmentVariableNames.AzureSpeechKey] = ConfigurationKeys.AzureSpeechKey,
+        [EnvironmentVariableNames.AzureSpeechRegion] = ConfigurationKeys.AzureSpeechRegion,
+        [EnvironmentVariableNames.AzureSpeechVoice] = ConfigurationKeys.AzureSpeechVoice,
         [EnvironmentVariableNames.JwtSecret] = ConfigurationKeys.JwtSecret,
         [EnvironmentVariableNames.CorsAllowedOrigins] = ConfigurationKeys.CorsAllowedOrigins
     };

@@ -35,6 +35,10 @@ public sealed record PracticeFeedback(
     string ConfidenceFeedback,
     string FollowUpQuestion);
 
+public sealed record TranscribePracticeAudioResponse(string Transcript);
+
+public sealed record TextToSpeechRequest(string Text = "");
+
 public sealed record AuthRequest(
     string Email = "",
     string Password = "");

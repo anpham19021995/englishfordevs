@@ -36,4 +36,6 @@ public static class ValidationLimits
     public const int PracticeMessageMaxLength = 4000;
     public const int PracticeFeedbackMaxLength = 4000;
     public const int PracticeFollowUpQuestionMaxLength = 1000;
+    public const int VoiceAudioMaxBytes = 10 * 1024 * 1024;
+    public const int TextToSpeechMaxLength = 1000;
 }

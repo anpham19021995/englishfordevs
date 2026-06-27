@@ -59,6 +59,8 @@ npm run docker:down:volumes
 - `GET /api/me`
 - `GET /api/me/progress`
 - `POST /api/practice`
+- `POST /api/practice/transcribe`
+- `POST /api/practice/tts`
 - `GET /api/practice/history`
 - `DELETE /api/practice/history`
 
@@ -123,6 +125,9 @@ AI_PROVIDER=ollama
 OLLAMA_API_KEY=your_ollama_api_key_here
 OLLAMA_BASE_URL=https://ollama.com/api
 OLLAMA_MODEL=gemma3:4b
+AZURE_SPEECH_KEY=your_azure_speech_key_here
+AZURE_SPEECH_REGION=southeastasia
+AZURE_SPEECH_VOICE=en-US-JennyNeural
 JWT_SECRET=replace_with_a_long_random_secret
 ```
 

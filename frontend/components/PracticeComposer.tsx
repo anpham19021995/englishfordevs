@@ -2,12 +2,16 @@ import { validationLimits } from "@/lib/constants";
 import type { PracticeModeOption } from "@/lib/practiceModes";
 import { Send, Sparkles } from "lucide-react";
 import type { FormEvent } from "react";
+import { VoiceRecorder } from "./VoiceRecorder";
 
 type PracticeComposerProps = {
   activeMode: PracticeModeOption;
   message: string;
   isLoading: boolean;
+  isTranscribing: boolean;
   isAuthenticated: boolean;
+  onTranscribeAudio: (audio: Blob) => void;
+  onVoiceError: (message: string) => void;
   onMessageChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
@@ -16,7 +20,10 @@ export function PracticeComposer({
   activeMode,
   message,
   isLoading,
+  isTranscribing,
   isAuthenticated,
+  onTranscribeAudio,
+  onVoiceError,
   onMessageChange,
   onSubmit,
 }: PracticeComposerProps) {
@@ -43,14 +50,22 @@ export function PracticeComposer({
             Write naturally. {message.length}/
             {validationLimits.practiceMessageMaxLength}
           </p>
-          <button
-            className="primary-button"
-            type="submit"
-            disabled={isLoading || !message.trim() || !isAuthenticated}
-          >
-            <Send size={18} aria-hidden="true" />
-            {isLoading ? "Reviewing" : "Get feedback"}
-          </button>
+          <div className="composer-actions">
+            <VoiceRecorder
+              disabled={isLoading || !isAuthenticated}
+              isTranscribing={isTranscribing}
+              onAudioReady={onTranscribeAudio}
+              onError={onVoiceError}
+            />
+            <button
+              className="primary-button"
+              type="submit"
+              disabled={isLoading || isTranscribing || !message.trim() || !isAuthenticated}
+            >
+              <Send size={18} aria-hidden="true" />
+              {isLoading ? "Reviewing" : "Get feedback"}
+            </button>
+          </div>
         </div>
       </form>
     </section>

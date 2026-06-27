@@ -550,6 +550,14 @@ textarea:focus {
   flex-wrap: wrap;
 }
 
+.composer-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .hint {
   margin: 0;
   font-size: 0.9rem;
@@ -571,6 +579,11 @@ textarea:focus {
 .primary-button:disabled {
   cursor: not-allowed;
   opacity: 0.65;
+}
+
+.voice-button.is-recording {
+  border-color: var(--red);
+  color: var(--red);
 }
 
 .full-width {
@@ -883,6 +896,23 @@ textarea:focus {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel-soft);
+}
+
+.feedback-block-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.feedback-block-header span {
+  margin-bottom: 0;
+}
+
+.compact-icon-button {
+  width: 28px;
+  height: 28px;
 }
 
 .feedback-block:last-child {

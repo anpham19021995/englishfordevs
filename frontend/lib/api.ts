@@ -48,6 +48,9 @@ export type BackendStatus = {
   ollamaApiKeyConfigured: boolean;
   ollamaBaseUrl: string;
   ollamaModel: string;
+  azureSpeechConfigured?: boolean;
+  azureSpeechRegion?: string;
+  azureSpeechVoice?: string;
 };
 
 type PracticeResponse = {
@@ -117,6 +120,61 @@ export async function submitPractice(
     headers: createAuthHeaders(token),
     body: JSON.stringify({ mode, message }),
   });
+}
+
+export async function transcribePracticeAudio(token: string, audio: Blob) {
+  if (!apiBaseUrl) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL is required.");
+  }
+
+  const formData = new FormData();
+  formData.append("audio", audio, "practice.wav");
+
+  const response = await fetch(`${apiBaseUrl}/api/practice/transcribe`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+  const data = (await response.json().catch(() => ({}))) as {
+    transcript?: string;
+    error?: string;
+  };
+
+  if (!response.ok) {
+    throw new ApiRequestError(
+      data.error ?? defaultErrorForStatus(response.status),
+      response.status,
+    );
+  }
+
+  return data;
+}
+
+export async function synthesizePracticeSpeech(token: string, text: string) {
+  if (!apiBaseUrl) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL is required.");
+  }
+
+  const response = await fetch(`${apiBaseUrl}/api/practice/tts`, {
+    method: "POST",
+    headers: createAuthHeaders(token),
+    body: JSON.stringify({ text }),
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => ({}))) as {
+      error?: string;
+    };
+
+    throw new ApiRequestError(
+      data.error ?? defaultErrorForStatus(response.status),
+      response.status,
+    );
+  }
+
+  return response.blob();
 }
 
 export async function clearHistory(token: string) {
