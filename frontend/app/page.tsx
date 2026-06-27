@@ -6,6 +6,7 @@ import { ModeSelector } from "@/components/ModeSelector";
 import { PracticeComposer } from "@/components/PracticeComposer";
 import { ProgressPanel } from "@/components/ProgressPanel";
 import { StatusPanel } from "@/components/StatusPanel";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { VocabularyPanel } from "@/components/VocabularyPanel";
 import {
   AuthResponse,
@@ -31,6 +32,9 @@ import { CheckCircle2, Code2, Mic2, Sparkles } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type AuthMode = "login" | "register";
+type Theme = "light" | "dark";
+
+const themeStorageKey = "english-for-devs-theme";
 
 const suggestions = [
   {
@@ -70,6 +74,7 @@ export default function Home() {
   const [isHistoryClearing, setIsHistoryClearing] = useState(false);
   const [isStatusLoading, setIsStatusLoading] = useState(false);
   const [focusedHistoryItemId, setFocusedHistoryItemId] = useState("");
+  const [theme, setTheme] = useState<Theme>("light");
 
   const activeMode = useMemo(
     () => practiceModes.find((item) => item.id === mode) ?? practiceModes[0],
@@ -77,6 +82,14 @@ export default function Home() {
   );
 
   useEffect(() => {
+    const storedTheme = localStorage.getItem(themeStorageKey);
+
+    if (storedTheme === "light" || storedTheme === "dark") {
+      setTheme(storedTheme);
+    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      setTheme("dark");
+    }
+
     void loadBackendStatus();
 
     const storedAuth = localStorage.getItem(authStorageKey);
@@ -91,6 +104,11 @@ export default function Home() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem(themeStorageKey, theme);
+  }, [theme]);
 
   async function loadBackendStatus() {
     if (!hasApiBaseUrl()) {
@@ -336,10 +354,11 @@ export default function Home() {
             <div className="brand-mark" aria-hidden="true">
               <Sparkles size={24} />
             </div>
-            <div>
+            <div className="brand-copy">
               <h1>English for Developers</h1>
               <p>AI-powered English learning for software engineers.</p>
             </div>
+            <ThemeToggle theme={theme} onThemeChange={setTheme} />
           </div>
 
           <p className="section-label">MVP focus</p>

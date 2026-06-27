@@ -5,11 +5,46 @@
   --line: #d9e0e8;
   --panel: #ffffff;
   --panel-soft: #edf3f8;
+  --surface: rgba(255, 255, 255, 0.94);
+  --surface-subtle: rgba(255, 255, 255, 0.78);
+  --control: #ffffff;
+  --control-active: #e6f4f4;
+  --status-pill-bg: #e8f3ee;
+  --prompt-bg: #fff9ec;
+  --vocabulary-chip-bg: #e6f4f4;
+  --body-overlay-start: rgba(237, 243, 248, 0.92);
+  --body-overlay-end: rgba(246, 247, 249, 0.96);
+  --focus-ring: rgba(8, 127, 131, 0.16);
   --teal: #087f83;
   --green: #2e7d4f;
   --gold: #b7791f;
   --red: #b94b4b;
   --shadow: 0 18px 48px rgba(31, 45, 61, 0.12);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111821;
+  --ink: #edf4f8;
+  --muted: #9bacbb;
+  --line: #334454;
+  --panel: #17212b;
+  --panel-soft: #1f2d38;
+  --surface: rgba(23, 33, 43, 0.95);
+  --surface-subtle: rgba(23, 33, 43, 0.82);
+  --control: #111a23;
+  --control-active: #12353a;
+  --status-pill-bg: #15362d;
+  --prompt-bg: #2b2418;
+  --vocabulary-chip-bg: #12353a;
+  --body-overlay-start: rgba(13, 19, 27, 0.94);
+  --body-overlay-end: rgba(17, 24, 33, 0.96);
+  --focus-ring: rgba(52, 211, 217, 0.18);
+  --teal: #34d3d9;
+  --green: #6fd092;
+  --gold: #e1b35d;
+  --red: #f07d7d;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
 }
 
 * {
@@ -24,7 +59,7 @@ body {
 body {
   margin: 0;
   background:
-    linear-gradient(180deg, rgba(237, 243, 248, 0.92), rgba(246, 247, 249, 0.96)),
+    linear-gradient(180deg, var(--body-overlay-start), var(--body-overlay-end)),
     url("https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1800&q=80");
   background-attachment: fixed;
   background-position: center;
@@ -62,8 +97,8 @@ button {
 .practice-panel,
 .output-panel,
 .vocabulary-panel {
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(217, 224, 232, 0.86);
+  background: var(--surface);
+  border: 1px solid var(--line);
   box-shadow: var(--shadow);
 }
 
@@ -75,7 +110,9 @@ button {
 
 .brand {
   display: grid;
-  gap: 8px;
+  grid-template-columns: 44px 1fr auto;
+  gap: 10px;
+  align-items: flex-start;
   margin-bottom: 28px;
 }
 
@@ -93,6 +130,28 @@ button {
   margin: 0;
   font-size: 1.45rem;
   line-height: 1.12;
+}
+
+.brand-copy {
+  min-width: 0;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--control);
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.theme-toggle svg {
+  color: var(--teal);
 }
 
 .brand p,
@@ -160,12 +219,13 @@ button {
   padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
+  background: var(--control);
   color: var(--ink);
 }
 
 .auth-card input:focus {
   border-color: var(--teal);
-  outline: 3px solid rgba(8, 127, 131, 0.16);
+  outline: 3px solid var(--focus-ring);
 }
 
 .auth-toggle {
@@ -182,14 +242,14 @@ button {
   min-height: 36px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: white;
+  background: var(--control);
   color: var(--ink);
   font-weight: 800;
 }
 
 .auth-toggle button[aria-pressed="true"] {
   border-color: var(--teal);
-  background: #e6f4f4;
+  background: var(--control-active);
   color: var(--teal);
 }
 
@@ -204,7 +264,7 @@ button {
   place-items: center;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: white;
+  background: var(--control);
   color: var(--ink);
 }
 
@@ -278,7 +338,7 @@ button {
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: white;
+  background: var(--control);
 }
 
 .status-row.ok svg {
@@ -333,7 +393,7 @@ button {
   padding: 0 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: white;
+  background: var(--control);
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 800;
@@ -388,13 +448,13 @@ button {
   text-align: left;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   color: var(--ink);
 }
 
 .mode[aria-pressed="true"] {
   border-color: var(--teal);
-  outline: 3px solid rgba(8, 127, 131, 0.16);
+  outline: 3px solid var(--focus-ring);
 }
 
 .mode svg {
@@ -454,7 +514,7 @@ button {
   min-height: 32px;
   padding: 0 10px;
   border-radius: 999px;
-  background: #e8f3ee;
+  background: var(--status-pill-bg);
   color: var(--green);
   font-size: 0.84rem;
   font-weight: 700;
@@ -472,13 +532,14 @@ textarea {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
+  background: var(--control);
   color: var(--ink);
   line-height: 1.55;
 }
 
 textarea:focus {
   border-color: var(--teal);
-  outline: 3px solid rgba(8, 127, 131, 0.16);
+  outline: 3px solid var(--focus-ring);
 }
 
 .actions {
@@ -568,7 +629,7 @@ textarea:focus {
 }
 
 .segmented-control button[aria-pressed="true"] {
-  background: white;
+  background: var(--control);
   color: var(--teal);
   box-shadow: 0 1px 6px rgba(31, 45, 61, 0.1);
 }
@@ -581,7 +642,7 @@ textarea:focus {
   padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: white;
+  background: var(--control);
   color: var(--muted);
 }
 
@@ -589,6 +650,7 @@ textarea:focus {
   width: 100%;
   min-width: 0;
   border: 0;
+  background: transparent;
   color: var(--ink);
   outline: 0;
 }
@@ -611,14 +673,14 @@ textarea:focus {
   padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: white;
+  background: var(--control);
   color: var(--ink);
 }
 
 .search-field:focus-within,
 .category-filter select:focus {
   border-color: var(--teal);
-  outline: 3px solid rgba(8, 127, 131, 0.16);
+  outline: 3px solid var(--focus-ring);
 }
 
 .vocabulary-grid {
@@ -711,13 +773,13 @@ textarea:focus {
   padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: white;
+  background: var(--control);
   color: var(--ink);
 }
 
 .history-filters select:focus {
   border-color: var(--teal);
-  outline: 3px solid rgba(8, 127, 131, 0.16);
+  outline: 3px solid var(--focus-ring);
 }
 
 .history-list {
@@ -734,7 +796,7 @@ textarea:focus {
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--surface-subtle);
 }
 
 .history-item.is-latest {
@@ -764,7 +826,7 @@ textarea:focus {
   place-items: center;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: white;
+  background: var(--control);
   color: var(--muted);
   font-weight: 900;
 }
@@ -791,7 +853,7 @@ textarea:focus {
 .history-prompt {
   padding: 12px;
   border-left: 4px solid var(--gold);
-  background: #fff9ec;
+  background: var(--prompt-bg);
 }
 
 .history-prompt span,
@@ -839,7 +901,7 @@ textarea:focus {
   min-height: 38px;
   padding: 7px 10px;
   border-radius: 8px;
-  background: #e6f4f4;
+  background: var(--vocabulary-chip-bg);
   color: var(--teal);
   font-size: 0.84rem;
   font-weight: 800;
