@@ -183,7 +183,60 @@ public sealed class OpenAiPracticeCoach(
         var apiKey = configuration[ConfigurationKeys.OllamaApiKey];
         var baseUrl = (configuration[ConfigurationKeys.OllamaBaseUrl] ?? "http://localhost:11434/api").TrimEnd('/');
         var model = configuration[ConfigurationKeys.OllamaModel] ?? "gpt-oss:20b";
-        var payload = new
+        var payloads = new[]
+        {
+            CreateOllamaPayload(request, model, FeedbackSchema),
+            CreateOllamaPayload(request, model, "json"),
+            CreateOllamaPayload(request, model, null)
+        };
+
+        foreach (var payload in payloads)
+        {
+            var payloadJson = JsonSerializer.Serialize(payload, JsonOptions);
+
+            try
+            {
+                using var response = await SendOllamaAsync(
+                    baseUrl,
+                    apiKey,
+                    payloadJson,
+                    cancellationToken);
+                response.EnsureSuccessStatusCode();
+
+                var completion = await response.Content.ReadFromJsonAsync<OllamaChatCompletion>(
+                    JsonOptions,
+                    cancellationToken);
+                var feedback = NormalizeFeedback(
+                    completion?.Message.Content,
+                    request.Mode,
+                    out var usedFallback);
+
+                if (usedFallback)
+                {
+                    logger.LogWarning(
+                        "Ollama returned an empty or invalid feedback payload. Trying another response format.");
+
+                    continue;
+                }
+
+                return new PracticeResponse(feedback, PracticeSources.Ollama);
+            }
+            catch (Exception exception) when (exception is HttpRequestException or JsonException or TaskCanceledException)
+            {
+                logger.LogWarning(exception, "Ollama feedback generation attempt failed. Trying another response format.");
+            }
+        }
+
+        logger.LogWarning("Ollama feedback generation failed for all response formats. Returning local fallback.");
+        return new PracticeResponse(FallbackFeedback.ForMode(request.Mode), PracticeSources.LocalFallback);
+    }
+
+    private static object CreateOllamaPayload(
+        PracticeRequest request,
+        string model,
+        object? format)
+    {
+        return new
         {
             model,
             messages = new[]
@@ -199,48 +252,13 @@ public sealed class OpenAiPracticeCoach(
                     content = request.Message.Trim()
                 }
             },
-            format = FeedbackSchema,
+            format,
             stream = false,
             options = new
             {
                 temperature = 0.5
             }
         };
-
-        var payloadJson = JsonSerializer.Serialize(payload, JsonOptions);
-
-        try
-        {
-            using var response = await SendOllamaAsync(
-                baseUrl,
-                apiKey,
-                payloadJson,
-                cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            var completion = await response.Content.ReadFromJsonAsync<OllamaChatCompletion>(
-                JsonOptions,
-                cancellationToken);
-            var feedback = NormalizeFeedback(
-                completion?.Message.Content,
-                request.Mode,
-                out var usedFallback);
-
-            if (usedFallback)
-            {
-                logger.LogWarning(
-                    "Ollama returned an empty or invalid feedback payload. Returning local fallback.");
-            }
-
-            return new PracticeResponse(
-                feedback,
-                usedFallback ? PracticeSources.LocalFallback : PracticeSources.Ollama);
-        }
-        catch (Exception exception) when (exception is HttpRequestException or JsonException or TaskCanceledException)
-        {
-            logger.LogWarning(exception, "Ollama feedback generation failed. Returning local fallback.");
-            return new PracticeResponse(FallbackFeedback.ForMode(request.Mode), PracticeSources.LocalFallback);
-        }
     }
 
     private async Task<HttpResponseMessage> SendOllamaAsync(
@@ -355,6 +373,8 @@ public sealed class OpenAiPracticeCoach(
 
     private static PracticeFeedback ParseFeedback(string content)
     {
+        content = ExtractJsonObject(content);
+
         using var document = JsonDocument.Parse(content);
         var root = document.RootElement;
 
@@ -365,6 +385,17 @@ public sealed class OpenAiPracticeCoach(
             GetVocabulary(root, "vocabulary"),
             CleanText(GetRequiredString(root, "confidenceFeedback"), 360),
             CleanText(GetRequiredString(root, "followUpQuestion"), 240));
+    }
+
+    private static string ExtractJsonObject(string content)
+    {
+        content = content.Trim();
+        var start = content.IndexOf('{');
+        var end = content.LastIndexOf('}');
+
+        return start >= 0 && end > start
+            ? content[start..(end + 1)]
+            : content;
     }
 
     private static string GetRequiredString(JsonElement root, string propertyName)
