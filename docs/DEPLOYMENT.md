@@ -101,6 +101,78 @@ The AI health response should report:
 - `ollamaApiKeyConfigured`: `true`
 - `ollamaModel`: `gemma3:4b`
 
+### Backend CI/CD
+
+The backend deploys from GitHub Actions with:
+
+```bash
+.github/workflows/backend-container-app.yml
+```
+
+The workflow runs on pushes to `main` that change backend-related files:
+
+- `backend/**`
+- `backend.tests/**`
+- `.dockerignore`
+- `backend/Dockerfile`
+
+It can also be run manually from GitHub Actions with `workflow_dispatch`.
+
+Pipeline steps:
+
+1. Checkout source code.
+2. Install .NET 9.
+3. Restore, build, and test the backend.
+4. Login to Azure.
+5. Build the Docker image from `backend/Dockerfile`.
+6. Push two tags to Azure Container Registry:
+   - `englishfordevsacr.azurecr.io/englishfordevs-api:<commit-sha>`
+   - `englishfordevsacr.azurecr.io/englishfordevs-api:latest`
+7. Update Azure Container Apps to the commit SHA image.
+8. Smoke test `/api/health`.
+
+Required GitHub repository secret:
+
+```bash
+AZURE_CREDENTIALS
+```
+
+The workflow uses `azure/login@v3` with a service principal JSON secret. Azure Login also supports OIDC, which is more secure, but the JSON secret is simpler for this MVP.
+
+Create a service principal from Azure Cloud Shell:
+
+```bash
+az ad sp create-for-rbac \
+  --name englishfordevs-github-actions \
+  --role contributor \
+  --scopes /subscriptions/<subscription-id>/resourceGroups/englishfordevs-web_group
+```
+
+Then create a GitHub secret named `AZURE_CREDENTIALS` with this JSON shape:
+
+```json
+{
+  "clientId": "<appId from command output>",
+  "clientSecret": "<password from command output>",
+  "subscriptionId": "<subscription-id>",
+  "tenantId": "<tenant from command output>"
+}
+```
+
+Save it in:
+
+```bash
+GitHub repository -> Settings -> Secrets and variables -> Actions -> New repository secret
+```
+
+Secret name:
+
+```bash
+AZURE_CREDENTIALS
+```
+
+The backend app secrets such as `DATABASE_CONNECTION_STRING`, `OLLAMA_API_KEY`, and `JWT_SECRET` stay in Azure Container Apps environment variables. They are not stored in GitHub.
+
 ## 3. Deploy Frontend on Azure Static Web Apps
 
 Azure Static Web Apps deploys from GitHub Actions.

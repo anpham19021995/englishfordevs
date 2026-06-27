@@ -1,0 +1,79 @@
+name: Backend Container App CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - "backend.tests/**"
+      - ".dockerignore"
+      - "backend/Dockerfile"
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: "9.0.x"
+  AZURE_CORE_OUTPUT: none
+  AZURE_RESOURCE_GROUP: englishfordevs-web_group
+  AZURE_CONTAINER_APP: englishfordevs-api
+  ACR_NAME: englishfordevsacr
+  ACR_LOGIN_SERVER: englishfordevsacr.azurecr.io
+  IMAGE_NAME: englishfordevs-api
+
+jobs:
+  build_test_and_deploy:
+    runs-on: ubuntu-latest
+    name: Build, Test, Push, Deploy
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore backend
+        run: dotnet restore backend/EnglishForDevs.Api.csproj
+
+      - name: Restore backend tests
+        run: dotnet restore backend.tests/EnglishForDevs.Api.Tests.csproj
+
+      - name: Build backend
+        run: dotnet build backend/EnglishForDevs.Api.csproj --configuration Release --no-restore
+
+      - name: Test backend
+        run: dotnet test backend.tests/EnglishForDevs.Api.Tests.csproj --configuration Release --no-restore
+
+      - name: Azure login
+        uses: azure/login@v3
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to Azure Container Registry
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and push backend image
+        run: |
+          docker build \
+            --file backend/Dockerfile \
+            --tag ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --tag ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest \
+            .
+
+          docker push ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Deploy Azure Container App
+        run: |
+          az containerapp update \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AZURE_CONTAINER_APP }} \
+            --image ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Smoke test backend
+        run: |
+          sleep 20
+          curl --fail --silent --show-error \
+            https://englishfordevs-api.redpond-758e4a2a.southeastasia.azurecontainerapps.io/api/health
