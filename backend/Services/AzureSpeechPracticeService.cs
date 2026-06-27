@@ -27,7 +27,8 @@ public sealed class AzureSpeechPracticeService(
         using var request = new HttpRequestMessage(HttpMethod.Post, uri);
         request.Headers.Add("Ocp-Apim-Subscription-Key", key);
         request.Content = new StreamContent(audio);
-        request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(
+        request.Content.Headers.TryAddWithoutValidation(
+            "Content-Type",
             string.IsNullOrWhiteSpace(contentType)
                 ? "audio/wav; codecs=audio/pcm; samplerate=16000"
                 : contentType);
