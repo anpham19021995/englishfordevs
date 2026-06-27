@@ -1,11 +1,13 @@
 using EnglishForDevs.Api.Services;
 using EnglishForDevs.Api.Shared;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishForDevs.Api.Features.Practice;
 
 public static class SynthesizePracticeSpeech
 {
     public static async Task<IResult> HandleAsync(
+        [FromBody]
         TextToSpeechRequest request,
         IVoicePracticeService voiceService,
         CancellationToken cancellationToken)

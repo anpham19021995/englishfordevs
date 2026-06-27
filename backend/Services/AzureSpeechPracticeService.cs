@@ -32,7 +32,7 @@ public sealed class AzureSpeechPracticeService(
                 ? "audio/wav; codecs=audio/pcm; samplerate=16000"
                 : contentType);
 
-        using var response = await httpClient.SendAsync(request, cancellationToken);
+        using var response = await SendSpeechRequestAsync(request, "STT", cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
         if (!response.IsSuccessStatusCode)
@@ -86,7 +86,7 @@ public sealed class AzureSpeechPracticeService(
         request.Headers.UserAgent.ParseAdd(ApplicationConstants.ApiName);
         request.Content = new StringContent(ssml, Encoding.UTF8, "application/ssml+xml");
 
-        using var response = await httpClient.SendAsync(request, cancellationToken);
+        using var response = await SendSpeechRequestAsync(request, "TTS", cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -114,6 +114,27 @@ public sealed class AzureSpeechPracticeService(
         }
 
         return (key, region);
+    }
+
+    private async Task<HttpResponseMessage> SendSpeechRequestAsync(
+        HttpRequestMessage request,
+        string operation,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await httpClient.SendAsync(request, cancellationToken);
+        }
+        catch (HttpRequestException exception)
+        {
+            logger.LogWarning(exception, "Azure Speech {Operation} request failed.", operation);
+            throw new InvalidOperationException("Could not reach Azure Speech. Please try again.");
+        }
+        catch (TaskCanceledException exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning(exception, "Azure Speech {Operation} request timed out.", operation);
+            throw new InvalidOperationException("Azure Speech timed out. Please try again.");
+        }
     }
 
     private static string CleanLog(string value)
