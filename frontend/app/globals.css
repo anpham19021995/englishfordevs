@@ -677,6 +677,33 @@ textarea:focus {
   box-shadow: 0 1px 6px rgba(31, 45, 61, 0.1);
 }
 
+.vocabulary-source-control {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.vocabulary-source-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: -2px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+  color: var(--muted);
+}
+
+.vocabulary-source-summary svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--teal);
+}
+
+.vocabulary-source-summary p {
+  margin: 0;
+  line-height: 1.45;
+}
+
 .search-field {
   display: flex;
   align-items: center;

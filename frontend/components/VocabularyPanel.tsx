@@ -7,7 +7,7 @@ import {
   type DeveloperVocabularyItem,
   type VocabularyCategory,
 } from "@/lib/developerVocabulary";
-import { BookOpenText, Search, Send } from "lucide-react";
+import { BookOpenText, Lightbulb, Search, Send } from "lucide-react";
 import { useMemo, useState } from "react";
 
 type VocabularyPanelProps = {
@@ -15,10 +15,11 @@ type VocabularyPanelProps = {
   onPracticePhrase: (phrase: string) => void;
 };
 
-type VocabularyMode = "top" | "yours";
+type VocabularyMode = "top" | "ai" | "history";
 type CategoryFilter = "all" | VocabularyCategory;
 type DerivedVocabularyItem = DeveloperVocabularyItem & {
   seenCount?: number;
+  sourceLabel?: string;
 };
 
 export function VocabularyPanel({
@@ -29,43 +30,66 @@ export function VocabularyPanel({
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [query, setQuery] = useState("");
 
-  const yourVocabulary = useMemo(() => deriveVocabularyFromHistory(history), [history]);
-  const items = mode === "top" ? developerVocabulary : yourVocabulary;
+  const latestAiVocabulary = useMemo(() => deriveLatestAiVocabulary(history), [history]);
+  const historyVocabulary = useMemo(() => deriveVocabularyFromHistory(history), [history]);
+  const items = useMemo(() => {
+    if (mode === "ai") {
+      return latestAiVocabulary;
+    }
+
+    if (mode === "history") {
+      return historyVocabulary;
+    }
+
+    return developerVocabulary;
+  }, [historyVocabulary, latestAiVocabulary, mode]);
   const filteredItems = useMemo(
     () => filterVocabulary(items, category, query),
     [items, category, query],
   );
+  const modeSummary = getModeSummary(mode, {
+    topCount: developerVocabulary.length,
+    aiCount: latestAiVocabulary.length,
+    historyCount: historyVocabulary.length,
+  });
 
   return (
     <section className="vocabulary-panel" aria-labelledby="vocabulary-title">
       <div className="practice-header">
         <div>
-          <h3 id="vocabulary-title">Developer Vocabulary</h3>
+          <h3 id="vocabulary-title">Vocabulary Review</h3>
           <p className="panel-subtitle">
-            Learn phrases for debugging, reviews, incidents, and interviews.
+            Review core phrases, latest AI suggestions, and words from your practice history.
           </p>
         </div>
         <span className="status-pill">
           <BookOpenText size={16} aria-hidden="true" />
-          {mode === "top" ? `${developerVocabulary.length} phrases` : `${yourVocabulary.length} saved`}
+          {modeSummary.countLabel}
         </span>
       </div>
 
       <div className="vocabulary-toolbar">
-        <div className="segmented-control" role="group" aria-label="Vocabulary source">
+        <div className="segmented-control vocabulary-source-control" role="group" aria-label="Vocabulary source">
           <button
             type="button"
             aria-pressed={mode === "top"}
             onClick={() => setMode("top")}
           >
-            Top Vocabulary
+            Top
           </button>
           <button
             type="button"
-            aria-pressed={mode === "yours"}
-            onClick={() => setMode("yours")}
+            aria-pressed={mode === "ai"}
+            onClick={() => setMode("ai")}
           >
-            Your Vocabulary
+            Latest AI
+          </button>
+          <button
+            type="button"
+            aria-pressed={mode === "history"}
+            onClick={() => setMode("history")}
+          >
+            History
           </button>
         </div>
 
@@ -95,18 +119,23 @@ export function VocabularyPanel({
         </label>
       </div>
 
+      <div className="vocabulary-source-summary">
+        <Lightbulb size={16} aria-hidden="true" />
+        <p>{modeSummary.description}</p>
+      </div>
+
       {filteredItems.length > 0 ? (
         <div className="vocabulary-grid">
           {filteredItems.map((item) => (
             <article className="vocabulary-card" key={`${item.category}-${item.phrase}`}>
               <div>
-                <span>{item.category}</span>
+                <span>{item.category}{item.sourceLabel ? ` / ${item.sourceLabel}` : ""}</span>
                 <h4>{item.phrase}</h4>
               </div>
               <p>{item.meaning}</p>
               <small>{item.example}</small>
               <div className="vocabulary-card-footer">
-                {item.seenCount ? <strong>Seen {item.seenCount}x</strong> : <strong>Core phrase</strong>}
+                <strong>{getItemLabel(item, mode)}</strong>
                 <button
                   className="secondary-button"
                   type="button"
@@ -121,13 +150,31 @@ export function VocabularyPanel({
         </div>
       ) : (
         <div className="empty-state">
-          {mode === "yours"
-            ? "Submit practice feedback to build your personal vocabulary list."
+          {mode === "ai"
+            ? "Submit feedback once to see AI-suggested vocabulary from your latest turn."
+            : mode === "history"
+              ? "Submit practice feedback to build your personal vocabulary list."
             : "No vocabulary matches the selected filters."}
         </div>
       )}
     </section>
   );
+}
+
+function deriveLatestAiVocabulary(history: HistoryItem[]) {
+  const latestAttempt = history.find((attempt) => attempt.feedback.vocabulary.length > 0);
+
+  if (!latestAttempt) {
+    return [];
+  }
+
+  return latestAttempt.feedback.vocabulary
+    .map((value) => parseVocabularyItem(value))
+    .filter((item): item is DerivedVocabularyItem => Boolean(item))
+    .map((item) => ({
+      ...item,
+      sourceLabel: "latest feedback",
+    }));
 }
 
 function deriveVocabularyFromHistory(history: HistoryItem[]) {
@@ -147,6 +194,7 @@ function deriveVocabularyFromHistory(history: HistoryItem[]) {
       vocabulary.set(key, {
         ...item,
         seenCount: (existing?.seenCount ?? 0) + 1,
+        sourceLabel: "saved history",
       });
     }
   }
@@ -213,7 +261,50 @@ function inferCategory(phrase: string): VocabularyCategory {
     return "Meetings";
   }
 
-  return "Debugging";
+    return "Debugging";
+}
+
+function getModeSummary(
+  mode: VocabularyMode,
+  counts: {
+    topCount: number;
+    aiCount: number;
+    historyCount: number;
+  },
+) {
+  if (mode === "ai") {
+    return {
+      countLabel: `${counts.aiCount} suggested`,
+      description:
+        "Latest AI shows phrases from your most recent feedback, so you can review the vocabulary while the context is still fresh.",
+    };
+  }
+
+  if (mode === "history") {
+    return {
+      countLabel: `${counts.historyCount} saved`,
+      description:
+        "History collects vocabulary from previous feedback and sorts repeated phrases first.",
+    };
+  }
+
+  return {
+    countLabel: `${counts.topCount} phrases`,
+    description:
+      "Top vocabulary is a stable starter set for debugging, code review, meetings, incidents, architecture, and interviews.",
+  };
+}
+
+function getItemLabel(item: DerivedVocabularyItem, mode: VocabularyMode) {
+  if (mode === "history" && item.seenCount) {
+    return `Seen ${item.seenCount}x`;
+  }
+
+  if (mode === "ai") {
+    return "AI suggested";
+  }
+
+  return "Core phrase";
 }
 
 function filterVocabulary(
