@@ -558,6 +558,36 @@ textarea:focus {
   flex-wrap: wrap;
 }
 
+.voice-recorder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.recording-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(100%, 520px);
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--control);
+}
+
+.recording-preview audio {
+  width: clamp(180px, 28vw, 260px);
+  height: 34px;
+}
+
+.recording-preview span {
+  color: var(--muted);
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+
 .hint {
   margin: 0;
   font-size: 0.9rem;

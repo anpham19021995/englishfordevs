@@ -1,6 +1,6 @@
 "use client";
 
-import { Mic, Square } from "lucide-react";
+import { Check, Mic, Square, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type VoiceRecorderProps = {
@@ -23,6 +23,11 @@ export function VoiceRecorder({
 }: VoiceRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [recordedAudio, setRecordedAudio] = useState<{
+    blob: Blob;
+    url: string;
+    durationSeconds: number;
+  } | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
@@ -49,7 +54,13 @@ export function VoiceRecorder({
     return () => window.clearInterval(timer);
   }, [isRecording]);
 
-  useEffect(() => () => cleanup(), []);
+  useEffect(
+    () => () => {
+      cleanup();
+      clearRecordedAudio();
+    },
+    [],
+  );
 
   async function startRecording() {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -58,6 +69,7 @@ export function VoiceRecorder({
     }
 
     try {
+      clearRecordedAudio();
       chunksRef.current = [];
       setRecordingSeconds(0);
 
@@ -112,7 +124,14 @@ export function VoiceRecorder({
 
     const audio = mergeChunks(chunks);
     const resampled = downsample(audio, inputSampleRate, outputSampleRate);
-    onAudioReady(encodeWav(resampled, outputSampleRate));
+    const blob = encodeWav(resampled, outputSampleRate);
+    const durationSeconds = Math.max(1, Math.round(resampled.length / outputSampleRate));
+
+    setRecordedAudio({
+      blob,
+      url: URL.createObjectURL(blob),
+      durationSeconds,
+    });
   }
 
   function cleanup() {
@@ -127,30 +146,78 @@ export function VoiceRecorder({
     audioContextRef.current = null;
   }
 
+  function clearRecordedAudio() {
+    setRecordedAudio((current) => {
+      if (current) {
+        URL.revokeObjectURL(current.url);
+      }
+
+      return null;
+    });
+  }
+
+  function useRecordedAudio() {
+    if (!recordedAudio) {
+      return;
+    }
+
+    onAudioReady(recordedAudio.blob);
+  }
+
   return (
-    <button
-      className={`secondary-button voice-button${isRecording ? " is-recording" : ""}`}
-      type="button"
-      disabled={disabled || isTranscribing}
-      onClick={() => {
-        if (isRecording) {
-          void stopRecording();
-        } else {
-          void startRecording();
-        }
-      }}
-    >
-      {isRecording ? (
-        <Square size={16} aria-hidden="true" />
-      ) : (
-        <Mic size={16} aria-hidden="true" />
-      )}
-      {isTranscribing
-        ? "Transcribing"
-        : isRecording
-          ? `Stop ${formatSeconds(recordingSeconds)}`
-          : "Record"}
-    </button>
+    <div className="voice-recorder">
+      <button
+        className={`secondary-button voice-button${isRecording ? " is-recording" : ""}`}
+        type="button"
+        disabled={disabled || isTranscribing}
+        onClick={() => {
+          if (isRecording) {
+            void stopRecording();
+          } else {
+            void startRecording();
+          }
+        }}
+      >
+        {isRecording ? (
+          <Square size={16} aria-hidden="true" />
+        ) : (
+          <Mic size={16} aria-hidden="true" />
+        )}
+        {isTranscribing
+          ? "Transcribing"
+          : isRecording
+            ? `Stop ${formatSeconds(recordingSeconds)}`
+            : recordedAudio
+              ? "Record again"
+              : "Record"}
+      </button>
+
+      {recordedAudio ? (
+        <div className="recording-preview" aria-label="Recorded audio preview">
+          <audio controls src={recordedAudio.url} />
+          <span>{formatSeconds(recordedAudio.durationSeconds)}</span>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={useRecordedAudio}
+            disabled={disabled || isTranscribing}
+          >
+            <Check size={16} aria-hidden="true" />
+            Use transcript
+          </button>
+          <button
+            className="icon-button danger-icon-button"
+            type="button"
+            aria-label="Discard recording"
+            title="Discard recording"
+            onClick={clearRecordedAudio}
+            disabled={isTranscribing}
+          >
+            <Trash2 size={16} aria-hidden="true" />
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
